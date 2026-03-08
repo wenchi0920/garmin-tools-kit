@@ -6,7 +6,8 @@ from .hrv_client import HrvClient
 from .sleep_client import SleepClient
 from .health_client import HealthClient
 from .body_battery_client import BodyBatteryClient
+from .weight_client import WeightClient
 
 VERSION = "1.2.1"
 
-__all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "VERSION"]
+__all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "WeightClient", "VERSION"]
