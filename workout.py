@@ -13,6 +13,7 @@ import os
 import pprint
 import sys
 import yaml
+from datetime import datetime
 from typing import Dict, Optional, Any, List
 from loguru import logger
 
@@ -205,10 +206,11 @@ def main() -> None:
                 schedule_plan = yaml_content.get("schedulePlan")
                 if schedule_plan:
                     from datetime import timedelta
-                    start_date_str = schedule_plan.get("start_from")
-                    if not start_date_str:
+                    start_date_raw = schedule_plan.get("start_from")
+                    if not start_date_raw:
                         logger.warning("schedulePlan 缺少 'start_from' 日期，跳過排程。")
                     else:
+                        start_date_str = str(start_date_raw)
                         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
                         logger.info(f"檢測到排程計畫，起始日期: {start_date_str}")
                         

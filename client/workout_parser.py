@@ -20,6 +20,38 @@ class WorkoutDSLParser:
         except:
             return 0.0
 
+    def _get_executable_step_template(self, step_order: int) -> Dict[str, Any]:
+        """建立符合 Garmin 規格的空步驟範本。"""
+        return {
+            "type": "ExecutableStepDTO",
+            "stepId": None,
+            "stepOrder": step_order,
+            "childStepId": None,
+            "description": None,
+            "endCondition": {
+                "conditionTypeId": 1,
+                "conditionTypeKey": "lap.button"
+            },
+            "endConditionValue": None,
+            "targetType": {
+                "workoutTargetTypeId": 1,
+                "workoutTargetTypeKey": "no.target"
+            },
+            "targetValueOne": None,
+            "targetValueTwo": None,
+            "zoneNumber": None,
+            "secondaryTargetType": None,
+            "secondaryTargetValueOne": None,
+            "secondaryTargetValueTwo": None,
+            "secondaryZoneNumber": None,
+            "strokeType": {"strokeTypeId": 0, "strokeTypeKey": None},
+            "equipmentType": {"equipmentTypeId": 0, "equipmentTypeKey": None},
+            "category": None,
+            "exerciseName": None,
+            "weightValue": None,
+            "weightUnit": None
+        }
+
     def _parse_target(self, target_str: str) -> Dict[str, Any]:
         """解析 @H(z2) 或 @P($GA) 這種目標."""
         target_str = target_str.strip()
@@ -29,7 +61,7 @@ class WorkoutDSLParser:
         if hr_match:
             zone = int(hr_match.group(1))
             return {
-                "targetType": {"workoutTargetTypeKey": "heart.rate.zone"},
+                "targetType": {"workoutTargetTypeId": 4, "workoutTargetTypeKey": "heart.rate.zone"},
                 "zoneNumber": zone
             }
         
@@ -42,50 +74,73 @@ class WorkoutDSLParser:
             
             if "-" in pace_val:
                 p_high, p_low = pace_val.split("-")
-                # Garmin API 配速: targetValueOne 是較慢的(低速), targetValueTwo 是較快的(高速)
+                v_high = self._pace_to_mps(p_high)
+                v_low = self._pace_to_mps(p_low)
                 return {
-                    "targetType": {"workoutTargetTypeKey": "pace.zone"},
-                    "targetValueOne": self._pace_to_mps(p_high),
-                    "targetValueTwo": self._pace_to_mps(p_low)
+                    "targetType": {"workoutTargetTypeId": 6, "workoutTargetTypeKey": "pace.zone"},
+                    "targetValueOne": min(v_high, v_low),
+                    "targetValueTwo": max(v_high, v_low)
                 }
         
-        return {"targetType": {"workoutTargetTypeKey": "no.target"}}
+        return {
+            "targetType": {"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}
+        }
 
     def _parse_condition(self, cond_str: str) -> Dict[str, Any]:
         """解析 15min 或 2000m 這種結束條件."""
         cond_str = cond_str.strip()
         if cond_str.endswith("min"):
             val = float(cond_str.replace("min", "")) * 60
-            return {"endCondition": {"conditionTypeKey": "time"}, "endConditionValue": val}
+            return {"endCondition": {"conditionTypeId": 2, "conditionTypeKey": "time"}, "endConditionValue": val}
         elif cond_str.endswith("s") or cond_str.endswith("sec"):
             val = float(cond_str.replace("sec", "").replace("s", ""))
-            return {"endCondition": {"conditionTypeKey": "time"}, "endConditionValue": val}
+            return {"endCondition": {"conditionTypeId": 2, "conditionTypeKey": "time"}, "endConditionValue": val}
         elif cond_str.endswith("m"):
             val = float(cond_str.replace("m", ""))
-            return {"endCondition": {"conditionTypeKey": "distance"}, "endConditionValue": val}
+            return {"endCondition": {"conditionTypeId": 3, "conditionTypeKey": "distance"}, "endConditionValue": val}
         elif cond_str.endswith("k") or cond_str.endswith("km"):
             val = float(cond_str.replace("km", "").replace("k", "")) * 1000
-            return {"endCondition": {"conditionTypeKey": "distance"}, "endConditionValue": val}
+            return {"endCondition": {"conditionTypeId": 3, "conditionTypeKey": "distance"}, "endConditionValue": val}
         
-        return {"endCondition": {"conditionTypeKey": "lap.button"}, "endConditionValue": None}
+        return {"endCondition": {"conditionTypeId": 1, "conditionTypeKey": "lap.button"}, "endConditionValue": None}
 
-    def _dsl_to_steps(self, dsl_steps: List[Any]) -> List[Dict[str, Any]]:
+    def _dsl_to_steps(self, dsl_steps: List[Any], current_order: int = 1) -> List[Dict[str, Any]]:
         steps = []
-        for i, item in enumerate(dsl_steps):
+        # Mapping table for step types
+        type_id_map = {
+            "warmup": 1,
+            "cooldown": 2,
+            "run": 3,
+            "interval": 3,
+            "recovery": 4,
+            "rest": 5,
+            "repeat": 6
+        }
+
+        order = current_order
+        for item in dsl_steps:
             if isinstance(item, dict):
                 key = list(item.keys())[0]
                 val = item[key]
                 
-                # 處理重複: repeat(8)
+                # 處理重複: repeat(8) -> RepeatGroupDTO
                 repeat_match = re.match(r"repeat\((\d+)\)", key)
                 if repeat_match:
                     count = int(repeat_match.group(1))
+                    group_steps = self._dsl_to_steps(val, order + 1)
                     steps.append({
-                        "type": "RepeatedStepDTO",
-                        "stepOrder": i + 1,
-                        "repeatIterations": count,
-                        "workoutSteps": self._dsl_to_steps(val)
+                        "type": "RepeatGroupDTO",
+                        "stepId": None,
+                        "stepOrder": order,
+                        "stepType": {"stepTypeId": 6, "stepTypeKey": "repeat"},
+                        "childStepId": 1,
+                        "numberOfIterations": count,
+                        "workoutSteps": group_steps,
+                        "endCondition": {"conditionTypeId": 7, "conditionTypeKey": "iterations"},
+                        "endConditionValue": float(count),
+                        "smartRepeat": False
                     })
+                    order += len(group_steps) + 1
                     continue
 
                 # 處理基本步驟: warmup, run, recovery, cooldown
@@ -97,14 +152,17 @@ class WorkoutDSLParser:
                     cond_part = val
                     target_part = ""
                 
-                step = {
-                    "type": "ExecutableStepDTO",
-                    "stepOrder": i + 1,
-                    "stepType": {"stepTypeKey": step_type},
+                step = self._get_executable_step_template(order)
+                step.update({
+                    "stepType": {
+                        "stepTypeId": type_id_map.get(step_type, 3),
+                        "stepTypeKey": step_type
+                    },
                     **self._parse_condition(cond_part),
                     **self._parse_target(target_part)
-                }
+                })
                 steps.append(step)
+                order += 1
         return steps
 
     def parse_workout(self, name: str) -> Dict[str, Any]:
@@ -115,11 +173,11 @@ class WorkoutDSLParser:
 
         return {
             "workoutName": name,
-            "sportType": {"sportTypeKey": "running"},
+            "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
             "workoutSegments": [
                 {
                     "segmentOrder": 1,
-                    "sportType": {"sportTypeKey": "running"},
+                    "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
                     "workoutSteps": self._dsl_to_steps(dsl_steps)
                 }
             ]
