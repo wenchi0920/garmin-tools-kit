@@ -96,6 +96,8 @@ class ActivityClient(Client):
         
         logger.debug(f"正在準備下載活動 {activity_id}，格式: {format}")
         
+        import zipfile
+        
         # Get extension and data
         if format == "json":
             data = garth.client.connectapi(f"/activity-service/activity/{activity_id}")
@@ -120,14 +122,42 @@ class ActivityClient(Client):
             filepath = os.path.join(directory, f"{filename}.{ext}")
             with open(filepath, "wb") as f:
                 f.write(data)
+            
+            # If original format, it's a zip. Extract it to get .fit files.
+            if format == "original":
+                try:
+                    logger.debug(f"正在解壓縮原始檔案: {filepath}")
+                    with zipfile.ZipFile(filepath, "r") as zip_ref:
+                        # Zip might contain multiple files, but usually it's one .fit
+                        for zip_info in zip_ref.infolist():
+                            # Keep original extension from zip (usually .fit)
+                            zip_ext = os.path.splitext(zip_info.filename)[1]
+                            target_name = f"{filename}{zip_ext}"
+                            target_path = os.path.join(directory, target_name)
+                            
+                            # Extract and rename
+                            with zip_ref.open(zip_info) as source, open(target_path, "wb") as target:
+                                target.write(source.read())
+                            
+                            # Update filepath for subsequent operations (like utime)
+                            old_zip_path = filepath
+                            filepath = target_path
+                            logger.trace(f"已解壓至: {filepath}")
+                    
+                    # Remove the original zip file
+                    os.remove(old_zip_path)
+                    logger.debug(f"已刪除原始 ZIP 檔案: {old_zip_path}")
+                except Exception as e:
+                    logger.error(f"解壓縮失敗: {e}")
                 
         if original_time:
             # Set file time to activity start time (GMT)
             try:
-                dt_gmt = datetime.fromisoformat(start_time_gmt.replace("Z", "+00:00"))
-                timestamp = dt_gmt.timestamp()
-                os.utime(filepath, (timestamp, timestamp))
-                logger.trace(f"已同步檔案時間為活動開始時間 (GMT): {filepath}")
+                # Use gmt_dt if it was successfully calculated earlier
+                if 'gmt_dt' in locals():
+                    timestamp = gmt_dt.timestamp()
+                    os.utime(filepath, (timestamp, timestamp))
+                    logger.trace(f"已同步檔案時間為活動開始時間 (GMT): {filepath}")
             except Exception as e:
                 logger.warning(f"無法設定原始時間於 {filepath}: {e}")
                 
