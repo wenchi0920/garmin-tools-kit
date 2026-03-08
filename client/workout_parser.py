@@ -1,15 +1,21 @@
 """
-Purpose: 將簡約的 Workout DSL 轉換為 Garmin Connect 原始 API 格式。
+Purpose: 將簡約的 Workout DSL 與 Garmin Connect 原始 API 格式進行雙向轉換 (DTO 型別化)。
 Author: Gemini CLI
 """
 import re
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
+from models import WorkoutModel, ExecutableStepDTO, RepeatGroupDTO
 
 class WorkoutDSLParser:
-    def __init__(self, dsl_data: Dict[str, Any]):
-        self.settings = dsl_data.get("settings", {})
-        self.definitions = dsl_data.get("definitions", {})
-        self.workouts_dsl = dsl_data.get("workouts", {})
+    def __init__(self, dsl_data: Optional[Dict[str, Any]] = None):
+        if dsl_data:
+            self.settings = dsl_data.get("settings", {})
+            self.definitions = dsl_data.get("definitions", {})
+            self.workouts_dsl = dsl_data.get("workouts", {})
+        else:
+            self.settings = {}
+            self.definitions = {}
+            self.workouts_dsl = {}
 
     def _pace_to_mps(self, pace_str: str) -> float:
         """將 min:sec 轉換為 meters per second."""
@@ -20,37 +26,13 @@ class WorkoutDSLParser:
         except:
             return 0.0
 
-    def _get_executable_step_template(self, step_order: int) -> Dict[str, Any]:
-        """建立符合 Garmin 規格的空步驟範本。"""
-        return {
-            "type": "ExecutableStepDTO",
-            "stepId": None,
-            "stepOrder": step_order,
-            "childStepId": None,
-            "description": None,
-            "endCondition": {
-                "conditionTypeId": 1,
-                "conditionTypeKey": "lap.button"
-            },
-            "endConditionValue": None,
-            "targetType": {
-                "workoutTargetTypeId": 1,
-                "workoutTargetTypeKey": "no.target"
-            },
-            "targetValueOne": None,
-            "targetValueTwo": None,
-            "zoneNumber": None,
-            "secondaryTargetType": None,
-            "secondaryTargetValueOne": None,
-            "secondaryTargetValueTwo": None,
-            "secondaryZoneNumber": None,
-            "strokeType": {"strokeTypeId": 0, "strokeTypeKey": None},
-            "equipmentType": {"equipmentTypeId": 0, "equipmentTypeKey": None},
-            "category": None,
-            "exerciseName": None,
-            "weightValue": None,
-            "weightUnit": None
-        }
+    def _mps_to_pace(self, mps: float) -> str:
+        """將 meters per second 轉換為 min:sec."""
+        if not mps or mps <= 0:
+            return "0:00"
+        seconds_per_km = 1000.0 / mps
+        m, s = divmod(int(round(seconds_per_km)), 60)
+        return f"{m}:{s:02d}"
 
     def _parse_target(self, target_str: str) -> Dict[str, Any]:
         """解析 @H(z2) 或 @P($GA) 這種目標."""
@@ -104,18 +86,9 @@ class WorkoutDSLParser:
         
         return {"endCondition": {"conditionTypeId": 1, "conditionTypeKey": "lap.button"}, "endConditionValue": None}
 
-    def _dsl_to_steps(self, dsl_steps: List[Any], current_order: int = 1) -> List[Dict[str, Any]]:
+    def _dsl_to_steps(self, dsl_steps: List[Any], current_order: int = 1) -> List[Union[ExecutableStepDTO, RepeatGroupDTO]]:
         steps = []
-        # Mapping table for step types
-        type_id_map = {
-            "warmup": 1,
-            "cooldown": 2,
-            "run": 3,
-            "interval": 3,
-            "recovery": 4,
-            "rest": 5,
-            "repeat": 6
-        }
+        type_id_map = {"warmup": 1, "cooldown": 2, "run": 3, "interval": 3, "recovery": 4, "rest": 5, "repeat": 6}
 
         order = current_order
         for item in dsl_steps:
@@ -123,27 +96,21 @@ class WorkoutDSLParser:
                 key = list(item.keys())[0]
                 val = item[key]
                 
-                # 處理重複: repeat(8) -> RepeatGroupDTO
                 repeat_match = re.match(r"repeat\((\d+)\)", key)
                 if repeat_match:
                     count = int(repeat_match.group(1))
                     group_steps = self._dsl_to_steps(val, order + 1)
-                    steps.append({
-                        "type": "RepeatGroupDTO",
-                        "stepId": None,
-                        "stepOrder": order,
-                        "stepType": {"stepTypeId": 6, "stepTypeKey": "repeat"},
-                        "childStepId": 1,
-                        "numberOfIterations": count,
-                        "workoutSteps": group_steps,
-                        "endCondition": {"conditionTypeId": 7, "conditionTypeKey": "iterations"},
-                        "endConditionValue": float(count),
-                        "smartRepeat": False
-                    })
+                    steps.append(RepeatGroupDTO(
+                        stepOrder=order,
+                        stepType={"stepTypeId": 6, "stepTypeKey": "repeat"},
+                        numberOfIterations=count,
+                        workoutSteps=group_steps,
+                        endCondition={"conditionTypeId": 7, "conditionTypeKey": "iterations"},
+                        endConditionValue=float(count)
+                    ))
                     order += len(group_steps) + 1
                     continue
 
-                # 處理基本步驟: warmup, run, recovery, cooldown
                 step_type = key
                 if "@" in val:
                     cond_part, target_part = val.split("@", 1)
@@ -152,36 +119,77 @@ class WorkoutDSLParser:
                     cond_part = val
                     target_part = ""
                 
-                step = self._get_executable_step_template(order)
-                step.update({
-                    "stepType": {
-                        "stepTypeId": type_id_map.get(step_type, 3),
-                        "stepTypeKey": step_type
-                    },
-                    **self._parse_condition(cond_part),
-                    **self._parse_target(target_part)
-                })
+                cond_data = self._parse_condition(cond_part)
+                target_data = self._parse_target(target_part)
+                
+                step = ExecutableStepDTO(
+                    stepOrder=order,
+                    stepType={"stepTypeId": type_id_map.get(step_type, 3), "stepTypeKey": step_type},
+                    endCondition=cond_data["endCondition"],
+                    endConditionValue=cond_data.get("endConditionValue"),
+                    targetType=target_data["targetType"],
+                    targetValueOne=target_data.get("targetValueOne"),
+                    targetValueTwo=target_data.get("targetValueTwo"),
+                    zoneNumber=target_data.get("zoneNumber")
+                )
                 steps.append(step)
                 order += 1
         return steps
 
     def parse_workout(self, name: str) -> Dict[str, Any]:
-        """將特定名稱的 DSL 轉換為 Garmin 格式."""
+        """DSL -> DTO -> Garmin Dict."""
         dsl_steps = self.workouts_dsl.get(name)
-        if not dsl_steps:
-            return {}
+        if not dsl_steps: return {}
 
-        return {
-            "workoutName": name,
-            "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
-            "workoutSegments": [
-                {
-                    "segmentOrder": 1,
-                    "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
-                    "workoutSteps": self._dsl_to_steps(dsl_steps)
-                }
-            ]
-        }
+        workout_dto = WorkoutModel(
+            workoutName=name,
+            sportType={"sportTypeId": 1, "sportTypeKey": "running"},
+            workoutSegments=[{
+                "segmentOrder": 1,
+                "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
+                "workoutSteps": self._dsl_to_steps(dsl_steps)
+            }]
+        )
+        return workout_dto.model_dump(exclude_none=True, by_alias=True)
 
     def get_all_workouts(self) -> List[Dict[str, Any]]:
         return [self.parse_workout(name) for name in self.workouts_dsl.keys()]
+
+    def _step_to_dsl(self, step: Union[ExecutableStepDTO, RepeatGroupDTO]) -> Dict[str, Any]:
+        if isinstance(step, RepeatGroupDTO):
+            key = f"repeat({step.numberOfIterations})"
+            return {key: [self._step_to_dsl(s) for s in step.workoutSteps]}
+        
+        # ExecutableStepDTO
+        step_type = step.stepType.get("stepTypeKey", "run")
+        
+        # End condition
+        cond_key = step.endCondition.get("conditionTypeKey")
+        val = step.endConditionValue
+        if cond_key == "time":
+            cond_str = f"{int(val/60)}min" if val % 60 == 0 else f"{int(val)}s"
+        elif cond_key == "distance":
+            cond_str = f"{int(val/1000)}k" if val % 1000 == 0 else f"{int(val)}m"
+        else:
+            cond_str = "lap"
+            
+        # Target
+        target_key = step.targetType.get("workoutTargetTypeKey")
+        target_str = ""
+        if target_key == "heart.rate.zone":
+            target_str = f"@H(z{step.zoneNumber})"
+        elif target_key == "pace.zone":
+            p1 = self._mps_to_pace(step.targetValueOne)
+            p2 = self._mps_to_pace(step.targetValueTwo)
+            target_str = f"@P({p1}-{p2})"
+            
+        return {step_type: f"{cond_str}{target_str}"}
+
+    def workout_to_dsl(self, workout_json: Dict[str, Any]) -> Dict[str, Any]:
+        """Garmin Dict -> DTO -> DSL List."""
+        workout_dto = WorkoutModel.model_validate(workout_json)
+        dsl_list = []
+        for segment in workout_dto.workoutSegments:
+            for step in segment.workoutSteps:
+                dsl_list.append(self._step_to_dsl(step))
+        return {workout_dto.workoutName: dsl_list}
