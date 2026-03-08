@@ -58,8 +58,12 @@ class ActivityClient(Client):
         
         # Calculate timezone offset
         try:
-            local_dt = datetime.fromisoformat(start_time_local)
-            gmt_dt = datetime.fromisoformat(start_time_gmt.replace("Z", "+00:00")).replace(tzinfo=None)
+            # Handle both '2023-07-31 08:30:00' and '2023-07-31T08:30:00'
+            local_dt = datetime.fromisoformat(start_time_local.replace(" ", "T"))
+            # Garmin GMT time might be '2023-07-31 00:30:00.0Z' or similar
+            gmt_clean = start_time_gmt.replace("Z", "+00:00").replace(" ", "T")
+            gmt_dt = datetime.fromisoformat(gmt_clean).replace(tzinfo=None)
+            
             offset_seconds = int((local_dt - gmt_dt).total_seconds())
             hours, remainder = divmod(abs(offset_seconds), 3600)
             minutes, _ = divmod(remainder, 60)
