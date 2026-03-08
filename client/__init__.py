@@ -5,7 +5,8 @@ from .workout_parser import WorkoutDSLParser
 from .hrv_client import HrvClient
 from .sleep_client import SleepClient
 from .health_client import HealthClient
+from .body_battery_client import BodyBatteryClient
 
 VERSION = "1.2.1"
 
-__all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "VERSION"]
+__all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "VERSION"]
