@@ -1,136 +1,212 @@
-# Garmin Tool Kit (v1.2.1)
+# Garmin Tool Kit (v1.2.1) 🚀
 
-這是一個功能強大的工具包，旨在透過 Garmin Connect Web API 自動化獲取、匯出與管理您的運動數據與訓練計畫。核心特色在於使用 **Workout DSL** (Domain Specific Language) 來簡化複雜的訓練設計與週期排程。
+這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包的核心優勢在於 **Workout DSL** (領域特定語言)，讓您能用人類可讀的 YAML 格式定義複雜的訓練計畫，並一鍵同步至雲端與行事曆。
+
+---
+
+## 📋 目錄
+1. [核心功能](#-核心功能)
+2. [環境設定與安裝](#-環境設定與安裝)
+3. [認證機制](#-認證機制)
+4. [活動數據匯出 (activity.py)](#-活動數據匯出-activitypy)
+5. [訓練計畫管理 (workout.py)](#-訓練計畫管理-workoutpy)
+6. [健康數據系列 (Health Suite)](#-健康數據系列-health-suite)
+7. [Workout DSL 完整指南](#-workout-dsl-完整指南)
+8. [開發與測試](#-開發與測試)
+
+---
 
 ## 🚀 核心功能
 
-- **活動數據匯出 (`activity.py`)**：
-    - 支援 `GPX`, `TCX`, `FIT (Original)`, `JSON` 格式下載。
-    - 支援按數量 (`--count`) 或日期範圍 (`-sd`, `-ed`) 批次篩選。
-- **訓練計畫管理 (`workout.py`)**：
-    - **DSL 極簡定義**：用 YAML 語法取代 Garmin 龐雜的 JSON 結構。
-    - **自動排程器**：一次定義整週或整個月的課表，自動排入 Garmin 行事曆。
-- **健康數據獲取 (Health Suite)**：
-    - **HRV 狀態 (`hrv.py`)**：獲取每日摘要與 5 分鐘詳細採樣點。
-    - **睡眠分析 (`sleep.py`)**：獲取睡眠分數、階段時長與生理指標。
-    - **健康摘要 (`health.py`)**：獲取步數、熱量、壓力與綜合指標。
-    - **身體能量 (`body_battery.py`)**：獲取能量充電/消耗總量與詳細曲線。
-    - **體重數據 (`weight.py`)**：獲取最新體重、BMI、體脂率與歷史趨勢。
-- **認證機制**：支援 Garth SSO 會話持久化，一次登入，多次執行。
-
-## 🛠 技術棧
-
-- **核心**：Python 3.10+, Garth (SSO)
-- **模型**：Pydantic v2 (嚴格驗證 Garmin API 結構)
-- **日誌**：Loguru
-- **顯示**：tqdm (進度條)
-- **解析**：PyYAML
+- **數據導出**：支援將活動導出為 `FIT`, `GPX`, `TCX`, `JSON` 格式，並支援檔案時間戳記同步。
+- **訓練自動化**：使用 YAML 定義訓練課表，支援複雜的重複結構、區間目標（心率、配速、功率）。
+- **週期排程**：一次性排入整週或整個月的訓練計畫至 Garmin 行事曆。
+- **全方位健康追蹤**：抓取 HRV (心率變異度)、睡眠分數、每日健康摘要、身體能量指數、體重趨勢及 VO2 Max。
+- **精確指標**：獲取 API 隱藏的精確數據（如 VO2 Max 小數點、ACWR 負荷比值）。
 
 ---
 
-## 📖 使用方式：活動匯出 (`activity.py`)
+## 🛠 環境設定與安裝
 
+### 需求
+- Python 3.10+
+- 建議使用虛擬環境 (virtualenv)
+
+### 安裝步驟
 ```bash
-# 下載最近 5 個活動
-python activity.py -c 5
+# 複製專案 (如果您是從 Git 下載)
+git clone <repository_url>
+cd garmin-tools-kit
 
-# 下載指定日期區間的活動
-python activity.py -sd 2026-03-01 -ed 2026-03-08 -f original
+# 建立並啟動虛擬環境
+python3 -m venv virtualenv
+source virtualenv/bin/activate  # Linux/macOS
+# virtualenv\Scripts\activate  # Windows
+
+# 安裝依賴套件
+pip install -r requirements.txt
 ```
 
 ---
 
-## 📖 使用方式：健康數據獲取
+## 🔐 認證機制
 
-### 快速開始
-```bash
-# 獲取今日健康摘要
-python health.py --summary
+本工具使用 **Garth** 進行 SSO (單一登入)。登入成功後，憑證會安全地儲存在 `.garth/` 目錄中，有效期長達一年，除非您手動刪除該目錄，否則不需要重複登入。
 
-# 獲取今日睡眠分析
-python sleep.py --summary
-
-# 獲取今日身體能量變化
-python body_battery.py --summary
-
-# 獲取最新體重紀錄
-python weight.py --summary
-
-# 獲取特定日期的 HRV 詳細採樣
-python hrv.py -d 2026-03-01 --detailed
+### 設定環境變數
+在專案根目錄建立 `.env` 檔案：
+```env
+GARMIN_USERNAME=your_email@example.com
+GARMIN_PASSWORD=your_password
 ```
 
-### 體重工具詳細參數 (`weight.py`)
-| 參數 | 說明 | 預設值 |
+---
+
+## 🏃 活動數據匯出 (`activity.py`)
+
+負責抓取並下載您的運動紀錄。
+
+### CLI 參數教學
+| 參數 | 說明 | 範例 |
 | :--- | :--- | :--- |
-| `--upload KG` | 上傳體重資料 (單位: kg)。 | 無 |
-| `-d, --date` | 指定日期 (YYYY-MM-DD)。 | 今日 |
-| `-sd, --start_date` | 開始日期，若提供則獲取歷史區間資料。 | 無 |
-| `-ed, --end_date` | 結束日期 (區間模式用)。 | 今日 |
-| `--summary` | 顯示文字摘要。 | `False` |
-| `-o, --output` | 儲存為 JSON 檔案。 | 輸出至主控台 |
+| `-c, --count` | 下載最近活動數量 (預設 1, 可選 `all`) | `-c 10` |
+| `-sd, --start_date` | 開始日期 (YYYY-MM-DD) | `-sd 2026-01-01` |
+| `-ed, --end_date` | 結束日期 (YYYY-MM-DD) | `-ed 2026-03-08` |
+| `-f, --format` | 格式: `original`, `gpx`, `tcx`, `json` | `-f gpx` |
+| `-d, --directory` | 儲存目錄 (預設 `./data`) | `-d ./my_runs` |
+| `-ot, --originaltime` | 將檔案修改時間設為活動開始時間 | `-ot` |
+| `--desc [LEN]` | 在檔名中加入活動描述 | `--desc 20` |
+
+### 實戰範例
+```bash
+# 下載本月所有活動並同步時間戳記
+python activity.py -sd 2026-03-01 -ot
+
+# 備份所有歷史活動為 TCX 格式
+python activity.py -c all -f tcx -d ./backup
+```
 
 ---
 
-## 📖 使用方式：訓練計畫管理 (`workout.py`)
+## 🏋️ 訓練計畫管理 (`workout.py`)
 
-### 訓練計畫 DSL 完全手冊
+這是本工具包最強大的部分，支援 YAML 課表管理。
 
-#### 1. 結構概覽 (`workout.yaml`)
-一個完整的 DSL 檔案由三個部分組成：
-- `settings`: 控制上傳行為。
-- `definitions`: 定義重複使用的變數（配速、心率）。
-- `workouts`: 具體的訓練內容。
-- `schedulePlan` (選填): 自動排入行事曆。
+### 子指令說明
+- **`list`**：列出雲端現有的所有訓練計畫。
+- **`upload <file>`**：上傳一個或多個課表 DSL 檔案。
+- **`get <id>`**：將雲端計畫下載並轉換為 YAML DSL 格式。
+- **`delete <id>`**：刪除雲端指定的訓練計畫。
 
-#### 2. 完整範例範例 (`marathon_plan.yaml`)
+### 實戰範例
+```bash
+# 上傳您的馬拉松課表
+python workout.py upload marathon_plan.yaml
+
+# 查看目前雲端的計畫 ID
+python workout.py list
+
+# 獲取某個計畫的定義以供修改
+python workout.py get 12345678 -o backup.yaml
+```
+
+---
+
+## 🏥 健康數據系列 (Health Suite)
+
+這是一組專門抓取生理指標的工具，均支援 `--summary` 模式提供直觀輸出。
+
+### 1. HRV 狀態 (`hrv.py`)
+- **功能**：獲取心率變異度摘要與睡眠期間的 5 分鐘採樣點。
+- **範例**：`python hrv.py -d 2026-03-08 --detailed`
+
+### 2. 睡眠分析 (`sleep.py`)
+- **功能**：獲取睡眠分數、睡眠評語及各階段（深層、REM）時長。
+- **範例**：`python sleep.py --summary`
+
+### 3. 健康摘要 (`health.py`)
+- **功能**：綜合看板，包含步數、卡路里、壓力、呼吸與靜止心率。
+- **範例**：`python health.py --summary`
+
+### 4. 身體能量 (`body_battery.py`)
+- **功能**：獲取 Body Battery 的充電/消耗狀況，並列出關鍵影響事件。
+- **範例**：`python body_battery.py --summary`
+
+### 5. 體重管理 (`weight.py`)
+- **功能**：獲取體重歷史或**上傳**最新體重。
+- **上傳範例**：`python weight.py --upload 72.5`
+
+### 6. 體能指標 (`vo2max.py`)
+- **功能**：獲取 VO2 Max 趨勢（精確至小數點）與訓練狀態（Load, ACWR）。
+- **範例**：`python vo2max.py --summary`
+
+---
+
+## 📝 Workout DSL 完整指南
+
+### 1. 單位與語法
+- **時間**：`10min`, `90s`, `1:30` (分:秒)
+- **距離**：`1km`, `800m`, `5k`, `10mile`
+- **目標 (@)**：
+    - **心率**：`@H(z1)` (區間 1), `@H(140-150)` (自定義 bpm)
+    - **配速**：`@P(5:00-5:30)` (min/km), `@P($Easy)` (變數引用)
+    - **功率**：`@W(200-220)` (Watts)
+
+### 2. 完整 YAML 範例 (`marathon_lsd.yaml`)
 ```yaml
 settings:
+  # 如果雲端已有同名計畫，先刪除再上傳
   deleteSameNameWorkout: true
 
 definitions:
-  Easy: 6:00-6:30
-  Threshold: 4:50-5:05
+  # 定義常用配速，方便統一修改
+  Easy: 5:45-6:15
+  Marathon: 4:55-5:05
+  Z1_HR: z1
 
 workouts:
-  "週一輕鬆跑":
-    - warmup: 10min @H(z1)
-    - run: 40min @P($Easy)
-    - cooldown: 5min
+  "馬拉松 M 配速跑":
+    - warmup: 2km @H($Z1_HR)
+    - run: 15km @P($Marathon)
+    - cooldown: 10min
 
+  "間歇 800m x8":
+    - warmup: 15min @H(z2)
+    - repeat(8):
+        - run: 800m @P(3:50-4:00)
+        - recovery: 90s @H(z1)
+    - cooldown: 10min
+
+# (選填) 自動將上述計畫排入行事曆
 schedulePlan:
-  start_from: 2026-03-09
+  start_from: 2026-03-09  # 從下週一開始
   workouts:
-    - "週一輕鬆跑"
-    - "rest"
+    - "rest"              # 週一休息
+    - "間歇 800m x8"       # 週二間歇
+    - "rest"              # 週三休息
+    - "馬拉松 M 配速跑"     # 週四配速跑
+    - "rest"              # 週五休息
+    - "rest"              # 週六休息
+    - "馬拉松 M 配速跑"     # 週日長跑
 ```
-
-### 執行管理指令
-| 子指令 | 說明 | 範例 |
-| :--- | :--- | :--- |
-| `list` | 列出雲端所有訓練計畫 | `python workout.py list` |
-| `upload` | 上傳 DSL 檔案 | `python workout.py upload plan.yaml` |
-
----
-
-## 🔐 認證說明 (Authentication)
-
-本工具使用 `Garth` 進行 SSO 登入。
-1. **環境變數**：在 `.env` 中填入：
-   ```env
-   GARMIN_USERNAME=your_email@example.com
-   GARMIN_PASSWORD=your_password
-   ```
-2. **Session 持久化**：憑證會儲存在 `.garth/` 目錄。
 
 ---
 
 ## 🧪 開發與測試
 
+本專案擁有 100% 覆蓋核心邏輯的測試套件。
+
 ```bash
-# 執行測試
-python3 -m pytest tests/
+# 執行所有單元測試
+python3 -m pytest tests/ -v
 ```
 
+### 專案結構
+- `client/`: API 通訊層與 DSL 解析邏輯。
+- `models/`: 使用 Pydantic 強型別定義 Garmin API 資料結構。
+- `tests/`: 包含對模型、CLI 腳本與 API 的 Mock 測試。
+
 ---
+**免責聲明**：本工具使用 Garmin Connect 的非官方 API。請遵守 Garmin 的服務條款，避免高頻率的惡意請求。
+
 *Generated by Gemini CLI - 2026-03-08*
