@@ -6,6 +6,7 @@ Changelog:
 2026-03-07: 1.0.0 - 初始版本。
 2026-03-08: 1.1.0 - 實作 DSL 解析器，支援簡約 YAML 格式與批次上傳。
 2026-03-08: 1.1.1 - 實作 deleteSameNameWorkout 功能，上傳前自動清理同名計畫。
+2026-03-08: 1.2.1 - 升級至 v1.2.1，完善文件與 DTO 支援。
 """
 import argparse
 import getpass

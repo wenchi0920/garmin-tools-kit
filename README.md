@@ -1,129 +1,163 @@
-# Garmin Tool Kit (v1.2.0)
+# Garmin Tool Kit (v1.2.1)
 
-這是一個功能強大的工具包，旨在透過 Garmin Connect Web API 自動化獲取、匯出與管理您的運動數據與訓練計畫。支援 DSL (Domain Specific Language) 管理複雜的訓練排程與批次上傳。
+這是一個功能強大的工具包，旨在透過 Garmin Connect Web API 自動化獲取、匯出與管理您的運動數據與訓練計畫。核心特色在於使用 **Workout DSL** (Domain Specific Language) 來簡化複雜的訓練設計與週期排程。
 
 ## 🚀 核心功能
 
-- **活動數據匯出 (`activity.py`)**：支援多種格式 (GPX, TCX, JSON, Original) 的批次下載，並可依日期範圍、數量進行篩選。
+- **活動數據匯出 (`activity.py`)**：
+    - 支援 `GPX`, `TCX`, `FIT (Original)`, `JSON` 格式下載。
+    - 支援按數量 (`--count`) 或日期範圍 (`-sd`, `-ed`) 批次篩選。
+    - 檔案系統時間同步 (`--originaltime`)，讓匯出的檔案排序與活動時間一致。
 - **訓練計畫管理 (`workout.py`)**：
-    - **DSL 支援**：使用簡約的 YAML 語法定義複雜的間歇與排程。
-    - **批次上傳**：一次上傳多個訓練計畫，並自動清理同名舊檔。
-    - **自動排程**：支援將上傳的計畫自動排入 Garmin 行事曆。
-    - **雙向轉換**：支援從 Garmin 下載現有計畫並轉為 YAML 格式。
-- **靈活認證**：支援命令列參數、環境變數檔案 (`.env`) 以及互動式輸入。
-- **自動化 SSO**：支援儲存會話資訊，減少重複登入次數。
+    - **DSL 極簡定義**：用 YAML 語法取代 Garmin 龐雜的 JSON 結構。
+    - **批次處理**：自動刪除同名舊計畫 (`deleteSameNameWorkout`)，確保上傳內容為最新版本。
+    - **自動排程器**：一次定義整週或整個月的課表，自動排入 Garmin 行事曆。
+    - **逆向工程**：可將 Garmin 雲端的計畫下載並轉換為 DSL YAML 檔。
+- **認證機制**：支援 Garth SSO 會話持久化，一次登入，多次執行。
 
 ## 🛠 技術棧
 
-- **核心語言**：Python 3.10+
-- **數據驗證**：Pydantic v2
-- **通訊協議**：Garth (Garmin Connect SSO)
-- **日誌系統**：Loguru
-- **進度顯示**：tqdm
-- **格式解析**：PyYAML
+- **核心**：Python 3.10+, Garth (SSO)
+- **模型**：Pydantic v2 (嚴格驗證 Garmin API 結構)
+- **日誌**：Loguru
+- **顯示**：tqdm (進度條)
+- **解析**：PyYAML
 
 ---
 
-## 📖 使用方式
+## 📖 使用方式：活動匯出 (`activity.py`)
 
-### 1. 安裝與環境設定
-建議使用虛擬環境 (Virtualenv)：
+### 快速開始
 ```bash
-python -m venv virtualenv
-source virtualenv/bin/activate  # Linux/macOS
-pip install -r requirements.txt
+# 下載最近 5 個活動 (預設為原始 FIT 格式)
+python activity.py -c 5
+
+# 下載指定日期區間的活動
+python activity.py -sd 2026-03-01 -ed 2026-03-08 -f original
 ```
 
-### 2. 活動匯出工具 (`activity.py`)
-用於從 Garmin Connect 批次下載您的運動記錄。
-
-**基本範例：**
-```bash
-# 下載最近的 5 個活動（預設為 Original 格式，儲存至 ./data）
-python activity.py --count 5
-
-# 從 .env 檔案讀取帳密，並下載 2026 年 3 月的所有原始檔案
-python activity.py --env-file .env -sd 2026-03-01 -ed 2026-03-31 -f original
-```
-
-**CLI 參數說明：**
+### 詳細參數說明
 | 參數 | 說明 | 預設值 |
 | :--- | :--- | :--- |
-| `--username` | Garmin Connect 使用者名稱 (電子郵件) | 無 (提示輸入) |
-| `--password` | Garmin Connect 密碼 | 無 (提示輸入) |
-| `--env-file` | 指定 `.env` 檔案路徑以讀取帳密 | `.env` (若存在) |
-| `-c`, `--count` | 下載最近活動數量，或輸入 `all` | `1` |
-| `-sd`, `--start_date`| 開始日期 (格式: YYYY-MM-DD) | 無 |
-| `-ed`, `--end_date` | 結束日期 (格式: YYYY-MM-DD) | 無 |
-| `-f`, `--format` | 匯出格式: `gpx`, `tcx`, `original`, `json` | `original` |
-| `-d`, `--directory` | 匯出檔案存放目錄 | `./data` |
-| `-ot`, `--originaltime`| 將檔案系統時間設定為活動原始開始時間 | 關閉 |
-| `--desc [LEN]` | 將活動描述附加至檔名 (可指定限制長度) | 關閉 |
-| `-ss`, `--session` | 儲存/讀取會話資訊的目錄 | `.garth` |
+| `-c, --count` | 下載最近活動的數量（或輸入 `all`）。 | `1` |
+| `-sd, --start_date` | 開始日期 (YYYY-MM-DD)。 | 無 |
+| `-ed, --end_date` | 結束日期 (YYYY-MM-DD)。 | 無 |
+| `-f, --format` | 匯出格式：`gpx`, `tcx`, `original`, `json`。 | `original` |
+| `-d, --directory` | 匯出檔案存放目錄。 | `./data` |
+| `-ot, --originaltime` | 同步檔案系統的修改時間為活動開始時間。 | `False` |
+| `--desc [LEN]` | 檔名附加活動描述（若有提供 LEN 則限制長度）。 | `False` |
+| `--env-file` | 指定環境變數檔案 (例如 `.env`)。 | `.env` |
+| `-ss, --session` | 指定 SSO Session 儲存目錄。 | `.garth` |
+
+### 實戰範例
+1. **備份所有活動為 TCX 格式**：
+   ```bash
+   python activity.py -c all -f tcx -d ./backup_tcx
+   ```
+2. **下載本週活動並同步時間戳記**：
+   ```bash
+   python activity.py -sd 2026-03-02 -ot
+   ```
 
 ---
 
-### 3. 訓練計畫管理 (`workout.py`)
-支援強大的 DSL 語法，簡化 Garmin 原本複雜的 JSON 結構。
+## 📖 使用方式：訓練計畫管理 (`workout.py`)
 
-**子指令說明：**
-- `list`: 列出帳號下所有的訓練計畫。
-- `get <ID>`: 下載指定的訓練計畫並轉存為 YAML。
-- `upload <FILE>`: 上傳 YAML/DSL 檔案。
-- `delete <ID>`: 刪除指定的訓練計畫。
+### 訓練計畫 DSL 完全手冊
 
-**DSL 範例 (`workout_dsl.yaml`)：**
+#### 1. 結構概覽 (`workout.yaml`)
+一個完整的 DSL 檔案由三個部分組成：
+- `settings`: 控制上傳行為。
+- `definitions`: 定義重複使用的變數（配速、心率）。
+- `workouts`: 具體的訓練內容。
+- `schedulePlan` (選填): 自動排入行事曆。
+
+#### 2. 語法細節
+- **長度單位**：
+    - 時間：`10min`, `90s`, `1:30`
+    - 距離：`1km`, `800m`, `5k`
+- **目標設定 (Targets)**：
+    - **心率**：`@H(z1)` (區間), `@H(140-150)` (自定義 bpm)
+    - **配速**：`@P(5:00-5:30)` (min/km), `@P($Easy)` (引用變數)
+    - **功率**：`@W(200-220)` (Watts)
+- **步驟類型**：`warmup`, `run`, `recovery`, `rest`, `cooldown`
+- **重複結構**：
+  ```yaml
+  - repeat(6):
+      - run: 400m @P(4:00-4:10)
+      - recovery: 200m @H(z1)
+  ```
+
+#### 3. 完整範例範例 (`marathon_plan.yaml`)
 ```yaml
 settings:
-  deleteSameNameWorkout: true  # 上傳前自動刪除同名計畫
+  deleteSameNameWorkout: true
 
 definitions:
   Easy: 6:00-6:30
   Threshold: 4:50-5:05
 
 workouts:
-  "間歇 6x800m":
-    - warmup: 15min @H(z2)
+  "週一輕鬆跑":
+    - warmup: 10min @H(z1)
+    - run: 40min @P($Easy)
+    - cooldown: 5min
+
+  "間歇 800m x6":
+    - warmup: 2km @H(z2)
     - repeat(6):
-      - run: 800m @P($Threshold)
-      - recovery: 90s @H(z1)
-    - cooldown: 10min @H(z1)
+        - run: 800m @P($Threshold)
+        - recovery: 90s @H(z1)
+    - cooldown: 10min
 
 schedulePlan:
   start_from: 2026-03-09
   workouts:
+    - "週一輕鬆跑"
     - "rest"
-    - "間歇 6x800m"
+    - "週一輕鬆跑"
+    - "rest"
+    - "間歇 800m x6"
+    - "rest"
+    - "週一輕鬆跑"
 ```
 
-**執行指令：**
-```bash
-python workout.py upload example/workout_dsl.yaml
-```
+### 執行管理指令
+| 子指令 | 說明 | 範例 |
+| :--- | :--- | :--- |
+| `list` | 列出雲端所有訓練計畫 | `python workout.py list` |
+| `get` | 下載計畫並轉為 DSL | `python workout.py get <ID> -o my.yaml` |
+| `upload` | 上傳 DSL 檔案 | `python workout.py upload plan.yaml` |
+| `delete` | 刪除指定計畫 | `python workout.py delete <ID>` |
 
 ---
 
-## 🧪 測試與驗證
+## 🔐 認證說明 (Authentication)
 
-專案包含完整的單元測試集，使用 Mock 模擬連線環境：
+本工具使用 `Garth` 進行 SSO 登入。
+1. **環境變數**：在 `.env` 中填入：
+   ```env
+   GARMIN_USERNAME=your_email@example.com
+   GARMIN_PASSWORD=your_password
+   ```
+2. **Session 持久化**：登入成功後，憑證會儲存在 `.garth/` 目錄。除非 Session 過期，否則下次執行不需要重新輸入密碼。
+
+---
+
+## 🧪 開發與測試
+
 ```bash
-# 執行所有測試
-python3 -m unittest discover tests
+# 安裝依賴
+pip install -r requirements.txt
+
+# 執行測試
+python3 -m pytest tests/
 ```
 
-## 📝 檔案規範與結構
-
-- **數據存放**：預設匯出的活動數據將存放在 `./data/` 目錄。
-- **檔名格式**：`activity_YYYY-mm-dd_HH-ii-ss+時區`。
-- **認證快取**：SSO 資訊預設存放在 `.garth/`，有效期限內無需重新登入。
-
-## ⚠️ 錯誤代碼 (Exit Codes)
-
-| 代碼 | 描述 |
-| :--- | :--- |
-| **0** | 執行成功 |
-| **1** | 一般錯誤 (如：認證失敗、API 請求超時、檔案系統錯誤) |
-| **127** | 找不到指定指令或依賴項 |
+## 📝 備註與規範
+- 匯出路徑預設為 `./data/`。
+- 專案嚴格遵循 PEP 8 規範。
+- 所有核心修改均記錄於各腳本標頭的 `Changelog`。
 
 ---
 *Generated by Gemini CLI - 2026-03-08*
