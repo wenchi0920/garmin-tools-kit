@@ -13,6 +13,10 @@
     - **批次處理**：自動刪除同名舊計畫 (`deleteSameNameWorkout`)，確保上傳內容為最新版本。
     - **自動排程器**：一次定義整週或整個月的課表，自動排入 Garmin 行事曆。
     - **逆向工程**：可將 Garmin 雲端的計畫下載並轉換為 DSL YAML 檔。
+- **HRV 數據獲取 (`hrv.py`)**：
+    - **每日摘要**：獲取昨晚平均值、7日平均值、基線（Baseline）與平衡狀態。
+    - **詳細採樣**：支援獲取睡眠期間每 5 分鐘一筆的詳細 HRV 數據。
+    - **批次導出**：支援按日期區間篩選並導出為標準 JSON 格式。
 - **認證機制**：支援 Garth SSO 會話持久化，一次登入，多次執行。
 
 ## 🛠 技術棧
@@ -58,6 +62,33 @@ python activity.py -sd 2026-03-01 -ed 2026-03-08 -f original
    ```bash
    python activity.py -sd 2026-03-02 -ot
    ```
+
+---
+
+## 📖 使用方式：HRV 數據獲取 (`hrv.py`)
+
+### 快速開始
+```bash
+# 獲取今日 HRV 摘要 (直接輸出 JSON)
+python hrv.py
+
+# 獲取特定日期的 HRV 資料（包含詳細 5 分鐘採樣點）
+python hrv.py -d 2026-03-01 --detailed
+
+# 獲取本週所有 HRV 摘要並存成檔案
+python hrv.py -sd 2026-03-01 -ed 2026-03-08 -o my_hrv.json
+```
+
+### 詳細參數說明
+| 參數 | 說明 | 預設值 |
+| :--- | :--- | :--- |
+| `-d, --date` | 指定日期 (YYYY-MM-DD)。 | 今日 |
+| `-sd, --start_date` | 開始日期 (YYYY-MM-DD)，若提供則進入「區間模式」。 | 無 |
+| `-ed, --end_date` | 結束日期 (YYYY-MM-DD)。 | 無 (區間模式預設至今日) |
+| `--detailed` | 是否包含睡眠期間詳細的 5 分鐘採樣點 (`hrvReadings`)。 | `False` |
+| `-o, --output` | 將結果儲存至指定的 JSON 檔案。 | 輸出至主控台 |
+| `--env-file` | 指定環境變數檔案。 | `.env` |
+| `-ss, --session` | 指定 SSO Session 儲存目錄。 | `.garth` |
 
 ---
 
