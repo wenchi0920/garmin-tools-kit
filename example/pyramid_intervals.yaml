@@ -1,0 +1,22 @@
+# 金字塔間歇訓練 (Pyramid Intervals)
+settings:
+  deleteSameNameWorkout: true
+
+definitions:
+  Fast: 4:00-4:15
+  VeryFast: 3:45-4:00
+
+workouts:
+  "速度金字塔 (4-8-12-8-4)":
+    - warmup: 15min @H(z2)
+    - interval: 400m @P($VeryFast)
+    - recovery: 90s @H(z1)
+    - interval: 800m @P($Fast)
+    - recovery: 2min @H(z1)
+    - interval: 1200m @P($Fast)
+    - recovery: 3min @H(z1)
+    - interval: 800m @P($Fast)
+    - recovery: 2min @H(z1)
+    - interval: 400m @P($VeryFast)
+    - recovery: 90s @H(z1)
+    - cooldown: 10min @H(z1)

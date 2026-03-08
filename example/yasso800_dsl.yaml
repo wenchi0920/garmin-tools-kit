@@ -1,0 +1,16 @@
+# 亞索 800 (Yasso 800) DSL 格式
+# 邏輯：跑 800 公尺，休息（慢跑）與 800 公尺相同的時間
+settings:
+  deleteSameNameWorkout: true
+
+definitions:
+  # 假設目標全馬 3 小時 30 分，則 800m 跑 3 分 30 秒 (約 4:22 min/km)
+  Yasso_Pace: 4:20-4:30
+
+workouts:
+  "亞索 800 (10 趟)":
+    - warmup: 15min @H(z2)
+    - repeat(10):
+      - interval: 800m @P($Yasso_Pace)
+      - recovery: 210s @H(z1)  # 210s = 3:30
+    - cooldown: 10min @H(z1)

@@ -1,0 +1,22 @@
+# 短距離衝刺 (Sprint) 訓練
+# 核心：發展爆發力與跑姿，每趟全力以赴，並給予充分休息。
+settings:
+  deleteSameNameWorkout: true
+
+definitions:
+  Sprint_Pace: 3:00-3:30
+
+workouts:
+  "斜坡/平地衝刺 (10x30s)":
+    - warmup: 20min @H(z2)
+    - repeat(10):
+      - interval: 30s @P($Sprint_Pace)
+      - rest: 90s @H(z1)
+    - cooldown: 15min @H(z1)
+
+  "200m 全速衝刺 (8趟)":
+    - warmup: 20min @H(z2)
+    - repeat(8):
+      - interval: 200m @P($Sprint_Pace)
+      - rest: 2min @H(z1)
+    - cooldown: 10min @H(z1)

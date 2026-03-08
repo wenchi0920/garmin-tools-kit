@@ -1,0 +1,14 @@
+# VO2 Max 間歇訓練 (1000m x 5)
+settings:
+  deleteSameNameWorkout: true
+
+definitions:
+  VO2_Pace: 3:55-4:10  # 根據您的 5k 或 10k 配速調整
+
+workouts:
+  "VO2 Max 間歇 (5x1k)":
+    - warmup: 15min @H(z2)
+    - repeat(5):
+      - interval: 1000m @P($VO2_Pace)
+      - recovery: 3min @H(z1)
+    - cooldown: 10min @H(z1)

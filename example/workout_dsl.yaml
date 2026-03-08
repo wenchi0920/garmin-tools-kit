@@ -1,0 +1,47 @@
+
+# Garmin Connect 訓練計畫 (DSL 格式)
+# 支援簡約語法、定義變數以及自動排程
+
+settings:
+  deleteSameNameWorkout: true  # 上傳前自動刪除名稱相同的舊計畫
+
+# 定義配速變數 (min:sec 格式)
+definitions:
+  Easy: 6:00-6:30
+  Marathon: 5:15-5:30
+  Threshold: 4:50-5:05
+  Interval: 4:15-4:30
+
+# 訓練計畫定義
+workouts:
+  # 輕鬆跑 40 分鐘
+  "輕鬆跑 (40min)":
+    - warmup: 10min @H(z1)
+    - run: 25min @P($Easy)
+    - cooldown: 5min @H(z1)
+
+  # 5公里門檻跑
+  "門檻跑 (5km)":
+    - warmup: 2000m @H(z2)
+    - run: 5000m @P($Threshold)
+    - cooldown: 2000m @H(z2)
+
+  # 間歇訓練: 6 趟 800 公尺
+  "間歇 6x800m":
+    - warmup: 15min @H(z2)
+    - repeat(6):
+      - run: 800m @P($Interval)
+      - recovery: 90s @H(z1)
+    - cooldown: 10min @H(z1)
+
+# 自動排程計畫 (選填)
+schedulePlan:
+  start_from: 2026-03-09  # 起始日期 (YYYY-MM-DD)
+  workouts:
+    - "輕鬆跑 (40min)"  # Day 1
+    - "rest"            # Day 2
+    - "門檻跑 (5km)"    # Day 3
+    - "rest"            # Day 4
+    - "間歇 6x800m"     # Day 5
+    - "輕鬆跑 (40min)"  # Day 6
+    - "rest"            # Day 7

@@ -1,0 +1,17 @@
+# 馬拉松長距離 (LSD) 訓練計畫
+settings:
+  deleteSameNameWorkout: true
+
+definitions:
+  LSD_Pace: 6:30-7:00
+
+workouts:
+  "週日長跑 (LSD) 120min":
+    - warmup: 10min @H(z1)
+    - run: 100min @H(z2)
+    - cooldown: 10min @H(z1)
+
+  "長跑 20km (配速控制)":
+    - warmup: 2km @H(z2)
+    - run: 16km @P($LSD_Pace)
+    - cooldown: 2km @H(z1)

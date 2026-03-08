@@ -1,0 +1,20 @@
+# 乳酸門檻 (Lactate Threshold / Tempo) 訓練
+# 核心：在不產生過多乳酸的情況下，維持最高可負荷的配速。
+settings:
+  deleteSameNameWorkout: true
+
+definitions:
+  Threshold_Pace: 4:30-4:45
+
+workouts:
+  "門檻跑 (20min 定速)":
+    - warmup: 15min @H(z2)
+    - run: 20min @P($Threshold_Pace)
+    - cooldown: 10min @H(z1)
+
+  "門檻巡航間歇 (3x3km)":
+    - warmup: 15min @H(z2)
+    - repeat(3):
+      - run: 3000m @P($Threshold_Pace)
+      - recovery: 2min @H(z1)
+    - cooldown: 10min @H(z1)
