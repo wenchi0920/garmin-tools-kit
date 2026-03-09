@@ -217,6 +217,125 @@ schedulePlan:
     - "rest"
 ```
 
+### 3. 進階訓練範例庫 (Advanced Library)
+
+#### 🧪 乳酸門檻 (Lactate Threshold / Tempo)
+核心：在不產生過多乳酸的情況下，維持最高可負荷的配速。
+```yaml
+definitions:
+  Threshold_Pace: 4:30-4:45
+workouts:
+  "門檻跑 (20min 定速)":
+    - warmup: 15min @H(z2)
+    - run: 20min @P($Threshold_Pace)
+    - cooldown: 10min @H(z1)
+```
+
+#### 🏔️ 馬拉松長距離 (LSD)
+```yaml
+definitions:
+  LSD_Pace: 6:30-7:00
+workouts:
+  "週日長跑 (LSD) 120min":
+    - warmup: 10min @H(z1)
+    - run: 100min @H(z2)
+    - cooldown: 10min @H(z1)
+```
+
+#### 📐 金字塔間歇訓練 (Pyramid Intervals)
+```yaml
+definitions:
+  Fast: 4:00-4:15
+  VeryFast: 3:45-4:00
+workouts:
+  "速度金字塔 (4-8-12-8-4)":
+    - warmup: 15min @H(z2)
+    - interval: 400m @P($VeryFast)
+    - recovery: 90s @H(z1)
+    - interval: 800m @P($Fast)
+    - recovery: 2min @H(z1)
+    - interval: 1200m @P($Fast)
+    - recovery: 3min @H(z1)
+    - interval: 800m @P($Fast)
+    - recovery: 2min @H(z1)
+    - interval: 400m @P($VeryFast)
+    - recovery: 90s @H(z1)
+    - cooldown: 10min @H(z1)
+```
+
+#### ⚡ 短距離衝刺 (Sprint Repeats)
+```yaml
+definitions:
+  Sprint_Pace: 3:00-3:30
+workouts:
+  "平地衝刺 (10x30s)":
+    - warmup: 20min @H(z2)
+    - repeat(10):
+      - interval: 30s @P($Sprint_Pace)
+      - rest: 90s @H(z1)
+    - cooldown: 15min @H(z1)
+```
+
+#### 🫁 VO2 Max 間歇訓練 (5x1k)
+```yaml
+definitions:
+  VO2_Pace: 3:55-4:10
+workouts:
+  "VO2 Max 間歇 (5x1k)":
+    - warmup: 15min @H(z2)
+    - repeat(5):
+      - interval: 1000m @P($VO2_Pace)
+      - recovery: 3min @H(z1)
+    - cooldown: 10min @H(z1)
+```
+
+---
+
+## 🏁 腳本完整 CLI 教學
+
+### 1. 活動數據 (`activity.py`)
+**目標**：備份所有 Garmin 活動，支援同步檔案時間與自定義檔名。
+```bash
+# 下載 2024 年至今所有活動，並同步檔案修改時間為起跑時間
+python activity.py -sd 2024-01-01 -f original -ot --env-file
+
+# 下載最近 3 筆活動，並在檔名加入 20 字活動描述
+python activity.py -c 3 --desc 20 -f gpx
+```
+
+### 2. 訓練計畫 (`workout.py`)
+**目標**：透過 DSL 批量管理與排程訓練。
+```bash
+# 列出雲端所有計畫
+python workout.py list
+
+# 下載計畫並轉為 YAML 範本
+python workout.py get <WORKOUT_ID> -o my_template.yaml
+
+# 批量上傳範例目錄下所有計畫
+python workout.py upload example/*.yaml
+```
+
+### 3. 健康觀測站 (`hrv.py`, `sleep.py`, etc.)
+**目標**：視覺化呈現生理指標。
+```bash
+# 檢視最近一週的 HRV 趨勢摘要
+python hrv.py -sd 2026-03-01 --summary
+
+# 檢視昨晚的詳細睡眠分數與階段
+python sleep.py --summary
+
+# 查詢目前的 VO2 Max 與 ACWR 負荷狀態
+python vo2max.py --summary
+```
+
+### 4. 賽事清單 (`race_event.py`)
+**目標**：獲取與管理比賽目標。
+```bash
+# 下載並顯示 2024-2026 年的所有賽事摘要
+python race_event.py -sd 2024-01-01 -ed 2026-12-31 --summary
+```
+
 ---
 
 ## 🧪 開發與測試
