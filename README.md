@@ -5,16 +5,17 @@
 ## 📋 目錄
 1. [VERSION, 程式說明描述](#1-version-程式說明描述)
 2. [核心功能](#2-核心功能)
-3. [環境設定與安裝](#3-環境設定與安裝)
-4. [認證機制](#4-認證機制)
-5. [使用方式](#5-使用方式)
-6. [CLI 參數與選項詳細說明](#6-cli-參數與選項詳細說明)
-7. [使用範例 (完整)](#7-使用範例-完整)
-8. [完整的 Workout Example 範例](#8-完整的-workout-example-範例)
-9. [Workout DSL 完整指南](#9-workout-dsl-完整指南)
-10. [開發與測試](#10-開發與測試)
-11. [更新紀錄 (Changelog)](#11-更新紀錄-changelog)
-12. [免責聲明](#12-免責聲明)
+3. [跨平台獨立執行檔下載](#3-跨平台獨立執行檔下載-免安裝-python)
+4. [環境設定與安裝](#4-環境設定與安裝)
+5. [認證機制](#5-認證機制)
+6. [使用方式](#6-使用方式)
+7. [CLI 參數與選項詳細說明](#7-cli-參數與選項詳細說明)
+8. [使用範例 (完整)](#8-使用範例-完整)
+9. [完整的 Workout Example 範例](#9-完整的-workout-example-範例)
+10. [Workout DSL 完整指南](#10-workout-dsl-完整指南)
+11. [開發與測試](#11-開發與測試)
+12. [更新紀錄 (Changelog)](#12-更新紀錄-changelog)
+13. [免責聲明](#13-免責聲明)
 
 ---
 
@@ -30,7 +31,20 @@
 - **週期排程與管理**：自動刪除 Garmin 上的同名計畫，一次性排入整週課表至行事曆，並支援備份現有課表。
 - **全方位健康追蹤**：包含 HRV、睡眠分數、Body Battery (身體能量趨勢)、體重變化、VO2 Max (最大攝氧量) 及最大心率等生理指標查詢與美化輸出 (`--summary`)。
 
-## 3. 環境設定與安裝
+## 3. 跨平台獨立執行檔下載 (免安裝 Python)
+若您不想安裝 Python 環境，可以直接從 [GitHub Releases](../../releases) 下載對應作業系統的編譯版本：
+- **Windows**: 下載 `garmin-tools-windows.exe`。
+- **Linux**: 下載 `garmin-tools-linux`。
+- **macOS**: 下載 `garmin-tools-macos`。
+
+下載後，只需在終端機 (或 CMD/PowerShell) 中將其更名為 `garmin-tools` 並加上執行權限 (Linux/Mac) 即可直接使用：
+```bash
+# Linux/Mac 範例
+chmod +x garmin-tools-linux
+./garmin-tools-linux activity -c 5
+```
+
+## 4. 環境設定與安裝
 
 ### 一般使用 (Linux/Mac/Windows)
 - **需求**：Python 3.10 或更高版本。建議使用虛擬環境隔離套件。
@@ -62,7 +76,7 @@ docker build -t garmin-tools .
 docker run --rm -v $(pwd)/.garth:/app/.garth -v $(pwd)/data:/app/data --env-file .env garmin-tools activity -c 3
 ```
 
-## 4. 認證機制
+## 5. 認證機制
 本工具使用 **Garth** 進行 SSO (Single Sign-On) 登入。這是一種安全且推薦的登入方式。
 - 首次成功登入後，登入憑證與 Session 資訊會預設儲存於工作目錄下的 `.garth/` 目錄中。
 - 後續執行指令時將直接讀取憑證，免去重複登入。
@@ -73,14 +87,14 @@ GARMIN_USERNAME=your_email@example.com
 GARMIN_PASSWORD=your_password
 ```
 
-## 5. 使用方式
+## 6. 使用方式
 無論在哪個作業系統下，都透過執行 `garmin_tools.py` 搭配對應的子命令來使用。
 - **Linux/Mac**: 開啟 Terminal，切換至專案目錄，並載入虛擬環境後執行：
   `python3 garmin_tools.py [subcommand] [options]`
 - **Windows**: 開啟 Command Prompt 或 PowerShell，載入虛擬環境後執行：
   `python garmin_tools.py [subcommand] [options]`
 
-## 6. CLI 參數與選項詳細說明
+## 7. CLI 參數與選項詳細說明
 
 ### 全域選項 (Global Options)
 任何子命令都可以搭配以下全域選項使用：
@@ -129,7 +143,7 @@ GARMIN_PASSWORD=your_password
     - `-l LIMIT, --limit LIMIT`: 限制查詢筆數。
     - `--summary`: 美化輸出。
 
-## 7. 使用範例 (完整)
+## 8. 使用範例 (完整)
 
 **通用參數示範：**
 ```bash
@@ -175,7 +189,7 @@ python garmin_tools.py weight --upload 70.5
 python garmin_tools.py max-hr --limit 5 --summary
 ```
 
-## 8. 完整的 Workout Example 範例
+## 9. 完整的 Workout Example 範例
 
 此工具支援使用 YAML 高度自訂各種類型的跑步與訓練計畫。
 
@@ -250,7 +264,7 @@ workouts:
     - cooldown: 10min
 ```
 
-## 9. Workout DSL 完整指南
+## 10. Workout DSL 完整指南
 
 此專案使用獨創的 DSL (Domain Specific Language) 結合 YAML 檔案，可將自然語言風格的課表轉換為 Garmin API 支援的結構。
 
@@ -279,7 +293,7 @@ workouts:
 - 條件: 達到 `800m`
 - 目標: 配速介於 `4:20/km` 到 `4:30/km` 之間。
 
-## 10. 開發與測試
+## 11. 開發與測試
 
 為確保此專案在生產環境下穩健運作，所有開發行為必須符合《生產級工程開發規範彙整》(參考 `GEMINI.md`)。
 
@@ -292,7 +306,7 @@ workouts:
 
 每次修改後請確保所有測試皆綠燈，並落實「最小異動原則」。
 
-## 11. 更新紀錄 (Changelog)
+## 12. 更新紀錄 (Changelog)
 
 - **2026-03-07**: v1.0.0 - 初始發布 (Activity/Workout)。
 - **2026-03-08**: v1.2.1 - 完善 DTO 支援與環境變數優先級。
@@ -302,7 +316,7 @@ workouts:
     - 支援美化摘要 (`--summary`) 模式。
     - 更新 `README.md` 包含完整使用範例、全功能選項詳解與開發測試規範。
 
-## 12. 免責聲明
+## 13. 免責聲明
 
 免責聲明：本工具使用 Garmin Connect 的非官方 API。請遵守 Garmin 的服務條款，避免高頻率的惡意請求。使用者若因濫用高頻請求導致帳號遭受限制，請自行負責。
 
