@@ -1,0 +1,22 @@
+# 排除 Python 快取與虛擬環境
+__pycache__/
+*.py[cod]
+*$py.class
+virtualenv/
+.venv/
+env/
+venv/
+ENV/
+
+# 排除 Git 與 IDE 設定
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# 排除測試與快取
+.pytest_cache/
+.benchmarks/
+.garth/
+data/
+test_data/
