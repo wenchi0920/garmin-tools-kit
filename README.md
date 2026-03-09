@@ -1,6 +1,6 @@
-# Garmin Tool Kit (v1.2.1) 🚀
+# Garmin Tool Kit (v1.3.0) 🚀
 
-這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包的核心優勢在於 **Workout DSL** (領域特定語言)，讓您能用人類可讀的 YAML 格式定義複雜的訓練計畫，並一鍵同步至雲端與行事曆。
+這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包的核心優勢在於 **Workout DSL** ( 領域特定語言)，讓您能用人類可讀的 YAML 格式定義複雜的訓練計畫，並一鍵同步至雲端與行事曆。
 
 ---
 
@@ -9,17 +9,19 @@
 2. [環境設定與安裝](#-環境設定與安裝)
 3. [認證機制](#-認證機制)
 4. [活動數據匯出 (activity.py)](#-活動數據匯出-activitypy)
-5. [訓練計畫管理 (workout.py)](#-訓練計畫管理-workoutpy)
-6. [健康數據系列 (Health Suite)](#-健康數據系列-health-suite)
-7. [Workout DSL 完整指南](#-workout-dsl-完整指南)
-8. [開發與測試](#-開發與測試)
-9. [🔄 更新紀錄 (Changelog)](#-更新紀錄-changelog)
+5. [比賽賽事抓取 (race_event.py)](#-比賽賽事抓取-race_eventpy)
+6. [訓練計畫管理 (workout.py)](#-訓練計畫管理-workoutpy)
+7. [健康數據系列 (Health Suite)](#-健康數據系列-health-suite)
+8. [Workout DSL 完整指南](#-workout-dsl-完整指南)
+9. [開發與測試](#-開發與測試)
+10. [🔄 更新紀錄 (Changelog)](#-更新紀錄-changelog)
 
 ---
 
 ## 🚀 核心功能
 
 - **數據導出**：支援將活動導出為 `FIT`, `GPX`, `TCX`, `JSON` 格式，並支援檔案時間戳記同步。
+- **賽事管理**：抓取 Garmin 行事曆中的比賽賽事 (Race Events) 清單。
 - **訓練自動化**：使用 YAML 定義訓練課表，支援複雜的重複結構、區間目標（心率、配速、功率）。
 - **週期排程**：一次性排入整週或整個月的訓練計畫至 Garmin 行事曆。
 - **全方位健康追蹤**：抓取 HRV (心率變異度)、睡眠分數、每日健康摘要、身體能量指數、體重趨勢、VO2 Max 及最大心率。
@@ -92,6 +94,30 @@ GARMIN_PASSWORD=your_password
 2. **下載 2026 年初的所有原始資料並同步檔案時間**:
    ```bash
    python activity.py -sd 2026-01-01 -ed 2026-03-01 -f original -ot
+   ```
+
+---
+
+## 🏁 比賽賽事抓取 (`race_event.py`)
+
+負責從 Garmin Connect 行事曆中抓取使用者已建立或訂閱的**比賽賽事 (Race Events)**，並匯出為 JSON 格式供分析。
+
+### 詳細 CLI 參數教學
+| 參數 | 說明 | 範例 |
+| :--- | :--- | :--- |
+| `-sd, --start_date` | 開始日期 (YYYY-MM-DD) | `-sd 2024-01-01` |
+| `-ed, --end_date` | 結束日期 (YYYY-MM-DD) | `-ed 2024-12-31` |
+| `-d, --directory` | 儲存目錄 (預設 `./data`) | `-d ./my_races` |
+| `-ss, --session` | SSO 認證儲存目錄 | `-ss .garth` |
+
+### 教學範例
+1. **抓取 2024 年全年的賽事**:
+   ```bash
+   python race_event.py -sd 2024-01-01 -ed 2024-12-31
+   ```
+2. **抓取未來已排定的賽事**:
+   ```bash
+   python race_event.py
    ```
 
 ---
@@ -204,11 +230,15 @@ python3 -m pytest tests/ -v
 
 ## 🔄 更新紀錄 (Changelog)
 
-- **2026-03-09**:
+- **2026-03-09 (v1.3.0)**:
+  - 新增 `race_event.py` 比賽賽事抓取工具，支援 `--summary` 美化輸出。
+  - 實作 `RaceEventClient` 與 `RaceEventModel` DTO。
+  - 完善單元測試與 `race_event.md` 指南。
+- **2026-03-09 (v1.2.2)**:
   - 整合 `activity.md` 與 `workout.md` 詳細教學至主 README。
   - 新增亞索 800 (Yasso 800) 完整 DSL 範例。
   - 擴充 Health Suite 所有工具的詳細參數說明與教學範例。
-- **2026-03-08**:
+- **2026-03-08 (v1.2.1)**:
   - 1.2.1 版本發佈。
   - 支援全系列健康數據抓取 (HRV, Sleep, Body Battery, etc.)。
   - 強化 Workout DSL 支援與 Pydantic v2 模型校驗。

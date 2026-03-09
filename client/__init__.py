@@ -9,7 +9,8 @@ from .body_battery_client import BodyBatteryClient
 from .weight_client import WeightClient
 from .vo2max_client import Vo2MaxClient
 from .max_hr_client import MaxHrClient
+from .race_event_client import RaceEventClient
 
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 
-__all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "WeightClient", "Vo2MaxClient", "MaxHrClient", "VERSION"]
+__all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "WeightClient", "Vo2MaxClient", "MaxHrClient", "RaceEventClient", "VERSION"]
