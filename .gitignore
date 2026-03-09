@@ -213,3 +213,7 @@ data/
 test_*.py
 .env
 *.md
+test_output
+test_data
+test_suite_workspace
+test_*

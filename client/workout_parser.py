@@ -20,8 +20,11 @@ class WorkoutDSLParser:
     def _pace_to_mps(self, pace_str: str) -> float:
         """將 min:sec 轉換為 meters per second."""
         try:
-            m, s = map(int, pace_str.split(":"))
-            total_seconds_per_km = m * 60 + s
+            if ":" in pace_str:
+                m, s = map(int, pace_str.split(":"))
+                total_seconds_per_km = m * 60 + s
+            else:
+                total_seconds_per_km = float(pace_str) * 60
             return 1000.0 / total_seconds_per_km
         except:
             return 0.0
@@ -63,6 +66,13 @@ class WorkoutDSLParser:
                     "targetValueOne": min(v_high, v_low),
                     "targetValueTwo": max(v_high, v_low)
                 }
+            else:
+                v = self._pace_to_mps(pace_val)
+                return {
+                    "targetType": {"workoutTargetTypeId": 6, "workoutTargetTypeKey": "pace.zone"},
+                    "targetValueOne": v,
+                    "targetValueTwo": v
+                }
         
         return {
             "targetType": {"workoutTargetTypeId": 1, "workoutTargetTypeKey": "no.target"}
@@ -70,18 +80,18 @@ class WorkoutDSLParser:
 
     def _parse_condition(self, cond_str: str) -> Dict[str, Any]:
         """解析 15min 或 2000m 這種結束條件."""
-        cond_str = cond_str.strip()
+        cond_str = cond_str.strip().lower()
         if cond_str.endswith("min"):
             val = float(cond_str.replace("min", "")) * 60
             return {"endCondition": {"conditionTypeId": 2, "conditionTypeKey": "time"}, "endConditionValue": val}
         elif cond_str.endswith("s") or cond_str.endswith("sec"):
             val = float(cond_str.replace("sec", "").replace("s", ""))
             return {"endCondition": {"conditionTypeId": 2, "conditionTypeKey": "time"}, "endConditionValue": val}
+        elif cond_str.endswith("km") or cond_str.endswith("k"):
+            val = float(cond_str.replace("km", "").replace("k", "")) * 1000
+            return {"endCondition": {"conditionTypeId": 3, "conditionTypeKey": "distance"}, "endConditionValue": val}
         elif cond_str.endswith("m"):
             val = float(cond_str.replace("m", ""))
-            return {"endCondition": {"conditionTypeId": 3, "conditionTypeKey": "distance"}, "endConditionValue": val}
-        elif cond_str.endswith("k") or cond_str.endswith("km"):
-            val = float(cond_str.replace("km", "").replace("k", "")) * 1000
             return {"endCondition": {"conditionTypeId": 3, "conditionTypeKey": "distance"}, "endConditionValue": val}
         
         return {"endCondition": {"conditionTypeId": 1, "conditionTypeKey": "lap.button"}, "endConditionValue": None}
@@ -108,7 +118,9 @@ class WorkoutDSLParser:
                         endCondition={"conditionTypeId": 7, "conditionTypeKey": "iterations"},
                         endConditionValue=float(count)
                     ))
-                    order += len(group_steps) + 1
+                    # Garmin repeat group logic: the steps inside have their own orders
+                    # and the repeat group itself is one step.
+                    order += 1
                     continue
 
                 step_type = key
@@ -141,55 +153,17 @@ class WorkoutDSLParser:
         dsl_steps = self.workouts_dsl.get(name)
         if not dsl_steps: return {}
 
+        workout_steps = self._dsl_to_steps(dsl_steps)
         workout_dto = WorkoutModel(
             workoutName=name,
             sportType={"sportTypeId": 1, "sportTypeKey": "running"},
             workoutSegments=[{
                 "segmentOrder": 1,
                 "sportType": {"sportTypeId": 1, "sportTypeKey": "running"},
-                "workoutSteps": self._dsl_to_steps(dsl_steps)
+                "workoutSteps": workout_steps
             }]
         )
         return workout_dto.model_dump(exclude_none=True, by_alias=True)
 
     def get_all_workouts(self) -> List[Dict[str, Any]]:
         return [self.parse_workout(name) for name in self.workouts_dsl.keys()]
-
-    def _step_to_dsl(self, step: Union[ExecutableStepDTO, RepeatGroupDTO]) -> Dict[str, Any]:
-        if isinstance(step, RepeatGroupDTO):
-            key = f"repeat({step.numberOfIterations})"
-            return {key: [self._step_to_dsl(s) for s in step.workoutSteps]}
-        
-        # ExecutableStepDTO
-        step_type = step.stepType.get("stepTypeKey", "run")
-        
-        # End condition
-        cond_key = step.endCondition.get("conditionTypeKey")
-        val = step.endConditionValue
-        if cond_key == "time":
-            cond_str = f"{int(val/60)}min" if val % 60 == 0 else f"{int(val)}s"
-        elif cond_key == "distance":
-            cond_str = f"{int(val/1000)}k" if val % 1000 == 0 else f"{int(val)}m"
-        else:
-            cond_str = "lap"
-            
-        # Target
-        target_key = step.targetType.get("workoutTargetTypeKey")
-        target_str = ""
-        if target_key == "heart.rate.zone":
-            target_str = f"@H(z{step.zoneNumber})"
-        elif target_key == "pace.zone":
-            p1 = self._mps_to_pace(step.targetValueOne)
-            p2 = self._mps_to_pace(step.targetValueTwo)
-            target_str = f"@P({p1}-{p2})"
-            
-        return {step_type: f"{cond_str}{target_str}"}
-
-    def workout_to_dsl(self, workout_json: Dict[str, Any]) -> Dict[str, Any]:
-        """Garmin Dict -> DTO -> DSL List."""
-        workout_dto = WorkoutModel.model_validate(workout_json)
-        dsl_list = []
-        for segment in workout_dto.workoutSegments:
-            for step in segment.workoutSteps:
-                dsl_list.append(self._step_to_dsl(step))
-        return {workout_dto.workoutName: dsl_list}

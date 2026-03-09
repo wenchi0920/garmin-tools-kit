@@ -3,10 +3,12 @@ Purpose: Data Transfer Object (DTO) for Garmin Race Events.
 Author: Gemini CLI
 Changelog:
 - 2026-03-09: Updated to match /calendar-service/events response.
+- 2026-03-09: Optimized for Pydantic v2 and added date parsing.
 """
 
-from typing import List, Optional, Any, Dict
-from pydantic import BaseModel, Field
+from datetime import date
+from typing import List, Optional
+from pydantic import BaseModel, Field, ConfigDict
 
 class CompletionTarget(BaseModel):
     value: Optional[float] = None
@@ -25,9 +27,11 @@ class RaceEventModel(BaseModel):
     """
     Garmin Race Event Data Model from calendar-service.
     """
+    model_config = ConfigDict(populate_by_name=True)
+
     id: int
     event_name: str = Field(alias="eventName")
-    date: str  # Format: YYYY-MM-DD
+    event_date: date = Field(alias="date")  # Automatically parses YYYY-MM-DD
     url: Optional[str] = None
     registration_url: Optional[str] = Field(None, alias="registrationUrl")
     course_id: Optional[int] = Field(None, alias="courseId")
@@ -39,9 +43,6 @@ class RaceEventModel(BaseModel):
     location_start_point: Optional[LocationStartPoint] = Field(None, alias="locationStartPoint")
     event_type: Optional[str] = Field(None, alias="eventType")
     race: Optional[bool] = None
-    
-    class Config:
-        populate_by_name = True
 
 class RaceEventListModel(BaseModel):
     """
