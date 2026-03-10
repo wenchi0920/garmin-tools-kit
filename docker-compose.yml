@@ -1,5 +1,5 @@
 services:
-  garmin-kit:
+  garmin-tools:
     build: .
     container_name: garmin-tools-kit
     volumes:
@@ -10,12 +10,12 @@ services:
       - ./test_data:/app/test_data
       - ./tests:/app/tests
       - ./.garth:/app/.garth
-      - ./activity.py:/app/activity.py
-      - ./workout.py:/app/workout.py
+      - ./garmin_tools.py:/app/garmin_tools.py
       - ./requirements.txt:/app/requirements.txt
       - ./GEMINI.md:/app/GEMINI.md
     environment:
       - TZ=Asia/Taipei
+    restart: always
     stdin_open: true          # 保持交互式介面
     tty: true                 # 分配 TTY
     working_dir: /app
