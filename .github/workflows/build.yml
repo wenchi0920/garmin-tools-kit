@@ -7,6 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
+  # 第一階段：平行編譯三個平台
   build:
     name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -58,23 +59,34 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: dist/${{ matrix.artifact_name }}
 
+  # 第二階段：建立 Release 並上傳檔案
   release:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    
+    # [明確答案]：解決 403 錯誤的核心權限設定
+    permissions:
+      contents: write
+
     steps:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Create Release
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          # 這裡的路徑必須與 upload-artifact 的 name 對應
           files: |
             artifacts/garmin-tools-linux/garmin-tools-linux
             artifacts/garmin-tools-windows.exe/garmin-tools-windows.exe
             artifacts/garmin-tools-macos/garmin-tools-macos
+          generate_release_notes: true  # 自動根據 Commit 產生 Release 說明
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
