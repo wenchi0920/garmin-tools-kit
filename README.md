@@ -30,6 +30,7 @@
 - **訓練自動化 (DSL)**：使用 YAML 定義訓練課表，支援複雜重複結構 (`repeat`)、自訂配速區間 (`@P`)、心率區間 (`@H`) 與全域變數設定 (`definitions`)。
 - **週期排程與管理**：自動刪除 Garmin 上的同名計畫，一次性排入整週課表至行事曆，並支援備份現有課表。
 - **全方位健康追蹤**：包含 HRV、睡眠分數、Body Battery (身體能量趨勢)、體重變化、VO2 Max (最大攝氧量) 及最大心率等生理指標查詢與美化輸出 (`--summary`)。
+- **自動化備份 (Docker)**：容器內建 `cron` 排程，每天 AM 08:00 自動下載最新活動與昨日健康數據至 `data/` 目錄。
 
 ## 3. 跨平台獨立執行檔下載 (免安裝 Python)
 若您不想安裝 Python 環境，可以直接從 [GitHub Releases](../../releases) 下載對應作業系統的編譯版本：
@@ -64,16 +65,20 @@ source virtualenv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Docker 安裝與執行
+### Docker 安裝與執行 (不推薦將密碼存入 .env)
 使用 Docker 可以免去本地環境配置的煩惱。
 ```bash
 # 使用 Docker Compose (推薦)
-# 請先修改 docker-compose.yml 內的環境變數
+# 請透過 Shell 設定環境變數後執行 (避免將密碼存入 .env)
+export GARMIN_USERNAME=your_email@example.com
+export GARMIN_PASSWORD=your_password
 docker-compose run --rm garmin-tools activity -c 5
 
 # 手動 Docker 執行
 docker build -t garmin-tools .
-docker run --rm -v $(pwd)/.garth:/app/.garth -v $(pwd)/data:/app/data --env-file .env garmin-tools activity -c 3
+docker run --rm -v $(pwd)/.garth:/app/.garth -v $(pwd)/data:/app/data \
+  -e GARMIN_USERNAME=$GARMIN_USERNAME -e GARMIN_PASSWORD=$GARMIN_PASSWORD \
+  garmin-tools activity -c 3
 ```
 
 ## 5. 認證機制

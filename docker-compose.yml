@@ -15,6 +15,8 @@ services:
       - ./GEMINI.md:/app/GEMINI.md
     environment:
       - TZ=Asia/Taipei
+      - GARMIN_USERNAME
+      - GARMIN_PASSWORD
     restart: always
     stdin_open: true          # 保持交互式介面
     tty: true                 # 分配 TTY

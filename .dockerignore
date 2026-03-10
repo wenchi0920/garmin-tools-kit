@@ -17,6 +17,10 @@ ENV/
 # 排除測試與快取
 .pytest_cache/
 .benchmarks/
+# 排除環境變數與敏感資訊 (禁止使用 .env)
+.env
+.env.*
 .garth/
+credentials.json
 data/
 test_data/
