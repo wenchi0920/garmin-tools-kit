@@ -5,6 +5,7 @@ Author: Gemini CLI
 Changelog:
 2026-03-09: 1.2.1 - 初始整合版本，合併 10 個獨立工具為統一 CLI 入口。
 2026-03-09: 1.4.0 - 命名重構與輸出邏輯優化 (支援 --summary 與 -o 同時使用)。
+2026-03-10: 1.4.1 - 完善 README.md 文件與補齊 subcommand 範例。
 """
 import argparse
 import getpass
@@ -117,7 +118,8 @@ def execute_activity_export(args: argparse.Namespace):
     for activity in tqdm(activities, desc="下載活動進度", unit="個"):
         client.download_activity(
             activity, format=args.format, directory=args.directory,
-            original_time=args.originaltime, desc=args.desc
+            original_time=args.originaltime, desc=args.desc,
+            overwrite=args.over_write
         )
     logger.success(f"任務完成。所有活動已匯出至: {os.path.abspath(args.directory)}")
 
@@ -141,9 +143,12 @@ def manage_workout_workflow(args: argparse.Namespace):
     elif args.workout_command == "get":
         workout_data = client.get_workout(args.id)
         output_file = args.output or f"workout_{args.id}.yaml"
-        with open(output_file, "w", encoding="utf-8") as f:
-            yaml.dump(workout_data, f, sort_keys=False, allow_unicode=True, indent=4)
-        logger.success(f"訓練計畫下載成功! 檔名: {output_file}")
+        if not args.over_write and os.path.exists(output_file):
+            logger.info(f"檔案已存在，跳過儲存: {output_file}")
+        else:
+            with open(output_file, "w", encoding="utf-8") as f:
+                yaml.dump(workout_data, f, sort_keys=False, allow_unicode=True, indent=4)
+            logger.success(f"訓練計畫下載成功! 檔名: {output_file}")
 
     elif args.workout_command == "upload":
         with open(args.file, "r", encoding="utf-8") as f:
@@ -205,9 +210,12 @@ def fetch_daily_health_metrics(args: argparse.Namespace):
             print(f"能量: 身體能量當前 {summary_entry.get('bodyBatteryMostRecentValue')} | 壓力平均 {summary_entry.get('averageStressLevel')}")
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -234,9 +242,12 @@ def fetch_sleep_analytics(args: argparse.Namespace):
                 f"時間: 總計 {format_seconds(dto.get('sleepTimeSeconds', 0))} | 深層 {format_seconds(dto.get('deepSleepSeconds', 0))}")
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -267,9 +278,12 @@ def process_weight_tracking(args: argparse.Namespace):
                 f"日期: {dt} | 體重: {summary_entry.get('weight', 0) / 1000.0:.2f} kg | BMI: {summary_entry.get('bmi', 'N/A')} | 體脂: {summary_entry.get('bodyFat', 'N/A')}%")
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -292,9 +306,12 @@ def retrieve_hrv_readings(args: argparse.Namespace):
             if "hrvReadings" in item: del item["hrvReadings"]
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -317,9 +334,12 @@ def analyze_body_battery(args: argparse.Namespace):
                 f"日期: {summary_entry.get('calendarDate')} | 充電: {summary_entry.get('charged')} | 消耗: {summary_entry.get('drained')} | 評分: {summary_entry.get('bodyBatteryDynamicFeedbackEvent', {}).get('feedbackShortType')}")
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -350,9 +370,12 @@ def evaluate_vo2max_trends(args: argparse.Namespace):
                     f"日期: {g.get('calendarDate')} | VO2 Max: {g.get('vo2MaxValue')} | 體能年齡: {g.get('fitnessAge')}")
 
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -400,10 +423,13 @@ def fetch_race_calendar(args: argparse.Namespace):
         print("=" * 60)
 
     if args.output:
-        output_data = [e.model_dump(by_alias=True) for e in validated]
-        with open(args.output, "w", encoding="utf-8") as f:
-            json.dump(output_data, f, indent=4, ensure_ascii=False)
-        logger.success(f"資料已儲存至: {args.output}")
+        if not args.over_write and os.path.exists(args.output):
+            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+        else:
+            output_data = [e.model_dump(by_alias=True) for e in validated]
+            with open(args.output, "w", encoding="utf-8") as f:
+                json.dump(output_data, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {args.output}")
     elif not args.summary:
         print(json.dumps([e.model_dump(by_alias=True) for e in validated], indent=4, ensure_ascii=False))
 
@@ -420,6 +446,7 @@ def main():
     parser.add_argument("--password", help="Garmin 密碼")
     parser.add_argument("--env-file", nargs="?", const=".env", help="使用 env file (預設: .env)")
     parser.add_argument("-ss", "--session", default=".garth", help="SSO 目錄")
+    parser.add_argument("--over-write", action="store_true", help="如果檔案存在則覆蓋，否則忽略已存在的檔案")
 
     subparsers = parser.add_subparsers(dest="command", required=True, help="子命令")
 

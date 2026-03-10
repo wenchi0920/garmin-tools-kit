@@ -48,7 +48,7 @@ class ActivityClient(Client):
             
         return all_activities
 
-    def download_activity(self, activity, format="gpx", directory="./", original_time=False, desc=None):
+    def download_activity(self, activity, format="gpx", directory="./", original_time=False, desc=None, overwrite=True):
         """
         Download a single activity in specified format
         """
@@ -93,6 +93,18 @@ class ActivityClient(Client):
                 description = "".join(c for c in description if c.isalnum() or c in ("-", "_")).strip()
                 if description:
                     filename += f"_{description}"
+
+        # 檢查檔案是否已存在 (提早檢查以節省 API 呼叫)
+        # 注意: 這裡只能初步檢查檔名，如果是 original 格式 (zip -> fit)，
+        # 完整的 filepath 可能包含 .fit 擴充限，我們在後續根據格式細分
+        
+        ext_map = {"gpx": "gpx", "tcx": "tcx", "json": "json", "original": "fit"}
+        ext = ext_map.get(format, "unknown")
+        target_filepath = os.path.join(directory, f"{filename}.{ext}")
+
+        if not overwrite and os.path.exists(target_filepath):
+            logger.info(f"檔案已存在，跳過下載: {target_filepath}")
+            return target_filepath
         
         logger.debug(f"正在準備下載活動 {activity_id}，格式: {format}")
         
