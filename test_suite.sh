@@ -1,5 +1,5 @@
 #!/bin/bash
-# Garmin Tools Strictest Test Suite (v1.4.0)
+# Garmin Tools Strictest Test Suite (v1.4.1)
 # 涵蓋：Unit Test, Integration Test, E2E Test
 # 準則：全子命令、全選項、全路徑覆蓋
 
