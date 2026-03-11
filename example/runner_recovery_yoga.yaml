@@ -1,0 +1,22 @@
+# example/runner_recovery_yoga.yaml
+# 專為跑者設計的 20 分鐘修復與舒緩系列
+settings:
+  deleteSameNameWorkout: true
+
+workouts:
+  "跑者專屬舒緩瑜伽 (20min)":
+    - sport: yoga
+    # --- 靜心與活動 (5min) ---
+    - interval: 3min @note(調息與腹式呼吸：平靜心率並放鬆神經系統)
+    - interval: 2min @note(貓牛式流動：舒緩因跑步僵硬的脊椎與下背部)
+    
+    # --- 下肢深度伸展 (12min) ---
+    - interval: 3min @note(下犬式：踩踏腳跟以深度伸展小腿與腿後腱)
+    - interval: 2min @note(低位弓步 - 左：針對髖屈肌與髂腰肌深度伸展)
+    - interval: 2min @note(低位弓步 - 右：針對髖屈肌與髂腰肌深度伸展)
+    - interval: 2min @note(鴿式伸展 - 左：放鬆緊繃的臀大肌與外髖)
+    - interval: 2min @note(鴿式伸展 - 右：放鬆緊繃的臀大肌與外髖)
+    - interval: 1min @note(仰臥手抓腳伸展：伸展大腿後側，減輕腿部沉重感)
+    
+    # --- 結尾放鬆 (3min) ---
+    - interval: 3min @note(攤屍式大休息：全身肌肉完全放鬆與整合)
