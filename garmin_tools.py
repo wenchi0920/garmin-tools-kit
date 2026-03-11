@@ -465,6 +465,7 @@ def main():
     parser.add_argument("-ss", "--session", default=".garth", help="SSO 目錄")
     parser.add_argument("--over-write", action="store_true", help="如果檔案存在則覆蓋，否則忽略已存在的檔案")
     parser.add_argument("--progress", action="store_true", help="顯示目前進度，啟用表示 用 tqdm 顯示目前進度/也要顯示log")
+    parser.add_argument("--gui", action="store_true", help="啟動圖形化使用者介面 (GUI)")
 
     subparsers = parser.add_subparsers(dest="command", help="子命令 (預設: activity -c 5)")
 
@@ -520,6 +521,15 @@ def main():
 
     args = parser.parse_args()
     
+    if args.gui:
+        try:
+            import garmin_gui
+            garmin_gui.main()
+            return
+        except ImportError:
+            print("錯誤: 找不到 garmin_gui.py 或其依賴項。請確保已安裝 tkinter。")
+            return
+
     # 預設執行指令: 若無 command 則預設執行 activity -c 5
     if not args.command:
         args.command = "activity"

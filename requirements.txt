@@ -3,3 +3,5 @@ loguru
 PyYAML
 pydantic>=2.0.0
 tqdm
+tkcalendar
+customtkinter
