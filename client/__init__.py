@@ -11,6 +11,6 @@ from .vo2max_client import Vo2MaxClient
 from .max_hr_client import MaxHrClient
 from .race_event_client import RaceEventClient
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 
 __all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "WeightClient", "Vo2MaxClient", "MaxHrClient", "RaceEventClient", "VERSION"]

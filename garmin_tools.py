@@ -7,6 +7,8 @@ Changelog:
 2026-03-09: 1.4.0 - 命名重構與輸出邏輯優化 (支援 --summary 與 -o 同時使用)。
 2026-03-10: 1.4.1 - 完善 README.md 文件與補齊 subcommand 範例。
 2026-03-11: 1.4.1 - 新增 --progress 全域參數，支援 tqdm 進度條與 log 同步輸出。
+2026-03-11: 1.4.1 - 支援預設執行指令：不帶子命令時預設執行 activity -c 5。
+2026-03-11: 1.4.2 - 版本手動更新。
 """
 import argparse
 import getpass
@@ -464,7 +466,7 @@ def main():
     parser.add_argument("--over-write", action="store_true", help="如果檔案存在則覆蓋，否則忽略已存在的檔案")
     parser.add_argument("--progress", action="store_true", help="顯示目前進度，啟用表示 用 tqdm 顯示目前進度/也要顯示log")
 
-    subparsers = parser.add_subparsers(dest="command", required=True, help="子命令")
+    subparsers = parser.add_subparsers(dest="command", help="子命令 (預設: activity -c 5)")
 
     # Activity
     activity_parser = subparsers.add_parser("activity", help="活動匯出")
@@ -517,6 +519,18 @@ def main():
     p_hr.add_argument("--summary", action="store_true")
 
     args = parser.parse_args()
+    
+    # 預設執行指令: 若無 command 則預設執行 activity -c 5
+    if not args.command:
+        args.command = "activity"
+        setattr(args, "count", "5")
+        setattr(args, "start_date", None)
+        setattr(args, "end_date", None)
+        setattr(args, "format", "original")
+        setattr(args, "directory", "./data")
+        setattr(args, "originaltime", False)
+        setattr(args, "desc", None)
+
     configure_runtime_logger(args.verbosity, args.progress)
 
     handlers = {

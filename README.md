@@ -1,4 +1,4 @@
-# Garmin Tool Kit (v1.4.1) 🚀
+# Garmin Tool Kit (v1.4.2) 🚀
 
 
 這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包現在已全面整合為單一入口 `garmin_tools.py`。
@@ -21,7 +21,7 @@
 ---
 
 ## 1. VERSION, 程式說明描述
-- **Version**: v1.4.1
+- **Version**: v1.4.2
 - **程式說明描述**: 
   這是一個用來與 Garmin Connect Web 溝通並抓取資料的命令列工具包。包含活動資料下載、訓練計畫 (Workout) 管理 (使用特製的 YAML DSL 格式定義與上傳)、每日健康摘要、心率變異度 (HRV)、睡眠紀錄、最大心率指標、VO2 Max 等各項生理與訓練數據的查詢。一切操作皆整合在 `garmin_tools.py` 中，適合進階運動員與想要批量處理資料的使用者。
 
@@ -338,9 +338,11 @@ workouts:
 - **2026-03-10**: **v1.4.1** - 文件更新與範例完善。
     - 補齊 `workout delete`, `vo2max`, `race-event`, `health` 等子命令範例。
     - 修正 `README.md` 中遺漏的參數說明。
-- **2026-03-11**: **v1.4.1** - 🚀 **功能更新：新增 `--progress` 進度顯示模式。**
+- **2026-03-11**: **v1.4.1** - 🚀 **功能更新：新增 `--progress` 進度顯示模式與預設執行命令。**
     - 支援活動下載、健康數據 (Health/Sleep/HRV) 範圍抓取、Workout 批量上傳等任務的進度條顯示。
     - 整合 `tqdm` 與 `loguru`，確保進度條顯示時日誌輸出不閃爍。
+    - **預設行為**：執行 `python garmin_tools.py` 而不帶子命令時，將自動執行 `activity -c 5` (下載最新 5 筆活動)。
+- **2026-03-11**: **v1.4.2** - 版本手動更新。
 
 ## 13. 免責聲明
 
