@@ -44,6 +44,7 @@ class HealthClient(Client):
                 f"/usersummary-service/usersummary/daily/{display_name}", 
                 params={"calendarDate": date_str}
             )
+            self._random_delay()
             if not data:
                 logger.warning(f"日期 {date_str} 沒有健康摘要資料。")
                 return None

@@ -25,6 +25,7 @@ class HrvClient(Client):
         try:
             # Endpoint: /hrv-service/hrv/<YYYY-MM-DD>
             data = garth.client.connectapi(f"/hrv-service/hrv/{date_str}")
+            self._random_delay()
             if not data:
                 logger.warning(f"日期 {date_str} 沒有 HRV 資料。")
                 return None

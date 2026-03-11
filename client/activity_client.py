@@ -29,6 +29,7 @@ class ActivityClient(Client):
                 "/activitylist-service/activities/search/activities",
                 params=params
             )
+            self._random_delay()
             
             if not activities:
                 logger.debug("沒有更多活動。")
@@ -113,6 +114,7 @@ class ActivityClient(Client):
         # Get extension and data
         if format == "json":
             data = garth.client.connectapi(f"/activity-service/activity/{activity_id}")
+            self._random_delay()
             ext = "json"
             filepath = os.path.join(directory, f"{filename}.{ext}")
             with open(filepath, "w", encoding="utf-8") as f:
@@ -131,6 +133,7 @@ class ActivityClient(Client):
                 raise ValueError(f"不支援的格式: {format}")
                 
             data = garth.client.download(url)
+            self._random_delay()
             filepath = os.path.join(directory, f"{filename}.{ext}")
             with open(filepath, "wb") as f:
                 f.write(data)

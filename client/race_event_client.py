@@ -34,6 +34,7 @@ class RaceEventClient(Client):
             
         # Use connectapi method for OAuth-based request
         data = garth.client.connectapi(url, params=params)
+        self._random_delay()
         
         if isinstance(data, list):
             return data

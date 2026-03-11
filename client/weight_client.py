@@ -27,6 +27,7 @@ class WeightClient(Client):
         try:
             # Endpoint: /weight-service/weight/latest
             data = garth.client.connectapi("/weight-service/weight/latest", params={"date": date_str})
+            self._random_delay()
             if not data:
                 return None
             return WeightEntry(**data)

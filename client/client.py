@@ -1,4 +1,6 @@
 import garth
+import random
+import time
 from garth.exc import GarthException
 from loguru import logger
 
@@ -23,3 +25,11 @@ class Client(object):
             garth.save(self._session_dir)
             logger.info(f"登入成功並儲存會話至: {self._session_dir}")
         return True
+
+    def _random_delay(self) -> None:
+        """
+        實作隨機延遲 0.5s - 1.5s，符合 Garmin 服務條款與 GEMINI.md 規範。
+        """
+        delay = random.uniform(0.5, 1.5)
+        logger.trace(f"隨機延遲 {delay:.2f}s...")
+        time.sleep(delay)

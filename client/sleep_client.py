@@ -29,6 +29,7 @@ class SleepClient(Client):
                 f"/wellness-service/wellness/dailySleepData/{username}", 
                 params={"date": date_str}
             )
+            self._random_delay()
             if not data or not data.get("dailySleepDTO"):
                 logger.warning(f"日期 {date_str} 沒有睡眠資料。")
                 return None

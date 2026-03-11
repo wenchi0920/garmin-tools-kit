@@ -26,9 +26,11 @@ class MaxHrClient(Client):
             display_name = self.get_display_name()
             # Endpoint: /wellness-service/wellness/dailyHeartRate/<displayName>
             data = garth.client.connectapi(f"/wellness-service/wellness/dailyHeartRate/{display_name}", params={"date": date_str})
+            self._random_delay()
             
             # Also fetch lactate threshold from profile
             profile = garth.client.connectapi("/userprofile-service/userprofile/personal-information")
+            self._random_delay()
             lt_hr = profile.get("biometricProfile", {}).get("lactateThresholdHeartRate")
             
             return MaxHrMetrics(

@@ -16,6 +16,7 @@ class WorkoutClient(Client):
         url = "/workout-service/workouts"
         params = {"start": 0, "limit": 100}
         response = garth.client.request("GET", "connectapi", url, params=params)
+        self._random_delay()
         return response.json()
 
     def get_workout(self, workout_id: Any) -> Dict[str, Any]:
@@ -25,6 +26,7 @@ class WorkoutClient(Client):
         # Garmin Connect API for getting a specific workout
         url = f"/workout-service/workout/{workout_id}"
         response = garth.client.request("GET", "connectapi", url)
+        self._random_delay()
         return response.json()
 
     def upload_workout(self, workout_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -34,6 +36,7 @@ class WorkoutClient(Client):
         # Garmin Connect API for uploading/creating a workout
         url = "/workout-service/workout"
         response = garth.client.request("POST", "connectapi", url, json=workout_data)
+        self._random_delay()
         return response.json()
 
     def delete_workout(self, workout_id: Any) -> Dict[str, Any]:
@@ -42,6 +45,7 @@ class WorkoutClient(Client):
         """
         url = f"/workout-service/workout/{workout_id}"
         garth.client.request("DELETE", "connectapi", url)
+        self._random_delay()
         return {"status": "success", "workoutId": workout_id}
 
     def schedule_workout(self, workout_id: Any, date_str: str) -> Dict[str, Any]:
@@ -52,4 +56,5 @@ class WorkoutClient(Client):
         url = f"/workout-service/schedule/{workout_id}"
         payload = {"date": date_str}
         response = garth.client.request("POST", "connectapi", url, json=payload)
+        self._random_delay()
         return response.json()

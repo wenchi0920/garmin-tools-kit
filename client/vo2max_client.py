@@ -23,6 +23,7 @@ class Vo2MaxClient(Client):
         try:
             # Endpoint: /metrics-service/metrics/maxmet/daily/<start>/<end>
             data = garth.client.connectapi(f"/metrics-service/metrics/maxmet/daily/{start_date}/{end_date}")
+            self._random_delay()
             if not data:
                 return []
             return [Vo2MaxEntry(**item) for item in data]
