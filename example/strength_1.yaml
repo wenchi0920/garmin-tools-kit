@@ -1,0 +1,13 @@
+# example/strength_1.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "肌力範例 1 - 上肢水平推拉":
+    - sport: strength
+    - warmup: 5min @note(肩膀關節活動)
+    - repeat(3):
+      - interval: 10reps @note(槓鈴臥推)
+      - rest: 90s
+      - interval: 12reps @note(單臂啞鈴划船)
+      - rest: 90s
+    - cooldown: 5min @note(胸背伸展)

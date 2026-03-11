@@ -1,0 +1,11 @@
+# example/strength_5.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "肌力範例 5 - 下肢拉 (硬舉)":
+    - sport: strength
+    - warmup: 10min @note(動態伸展與核心啟動)
+    - repeat(3):
+      - interval: 6reps @note(傳統槓鈴硬舉)
+      - rest: 180s
+    - cooldown: 5min @note(腰背放鬆)

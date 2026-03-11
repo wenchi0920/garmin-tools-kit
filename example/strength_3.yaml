@@ -1,0 +1,13 @@
+# example/strength_3.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "肌力範例 3 - 核心強化基礎":
+    - sport: strength
+    - warmup: 3min @note(貓牛式熱身)
+    - repeat(3):
+      - interval: 45s @note(棒式支撐 Plank)
+      - rest: 15s
+      - interval: 20reps @note(俄羅斯轉體)
+      - rest: 30s
+    - cooldown: 2min @note(腹部伸展)

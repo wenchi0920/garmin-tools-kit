@@ -1,0 +1,104 @@
+# Garmin Connect 訓練計畫 - 肌力訓練與瑜伽範例 (DSL 格式)
+
+settings:
+  deleteSameNameWorkout: true
+
+workouts:
+  # --- 肌力訓練 (Strength) ---
+  "全身肌力基礎 A":
+    - sport: strength
+    - warmup: 5min @note(動態伸展)
+    - repeat(3):
+      - interval: 12reps @note(深蹲 Squat)
+      - rest: 45s
+      - interval: 12reps @note(俯臥撑 Push up)
+      - rest: 45s
+      - interval: 12reps @note(啞鈴划船 Row)
+      - rest: 60s
+    - cooldown: 5min @note(靜態拉伸)
+
+  "核心強化訓練":
+    - sport: strength
+    - warmup: 3min @note(關節活動)
+    - repeat(4):
+      - interval: 45s @note(棒式 Plank)
+      - rest: 15s
+      - interval: 20reps @note(俄羅斯轉體 Russian Twist)
+      - rest: 15s
+      - interval: 15reps @note(仰臥抬腿 Leg Raise)
+      - rest: 30s
+    - cooldown: 2min @note(腹部拉伸)
+
+  "下肢爆發力":
+    - sport: strength
+    - warmup: 5min @note(慢跑與跳躍)
+    - repeat(3):
+      - interval: 10reps @note(交替弓步走 Lunge)
+      - rest: 30s
+      - interval: 8reps @note(深蹲跳 Jump Squat)
+      - rest: 60s
+    - cooldown: 5min @note(下肢放鬆)
+
+  "上肢線條雕塑":
+    - sport: strength
+    - warmup: 5min @note(肩膀旋轉)
+    - repeat(3):
+      - interval: 12reps @note(二頭肌彎舉 Bicep Curl)
+      - rest: 30s
+      - interval: 12reps @note(板凳撐體 Tricep Dip)
+      - rest: 30s
+      - interval: 10reps @note(肩推 Shoulder Press)
+      - rest: 60s
+    - cooldown: 5min @note(上肢拉伸)
+
+  "高強度功能性訓練":
+    - sport: strength
+    - warmup: 5min @note(跳繩)
+    - repeat(5):
+      - interval: 10reps @note(波比跳 Burpee)
+      - rest: 20s
+      - interval: 15reps @note(壺鈴擺盪 KB Swing)
+      - rest: 40s
+    - cooldown: 5min @note(全身放鬆)
+
+  # --- 瑜伽 (Yoga) ---
+  "晨間喚醒瑜伽":
+    - sport: yoga
+    - interval: 3min @note(調息與靜心)
+    - repeat(5):
+      - interval: lap.button @note(拜日式 A Sun Salutation A)
+    - interval: 5min @note(大休息 Savasana)
+
+  "睡前放鬆瑜伽":
+    - sport: yoga
+    - interval: 1min @note(嬰兒式 Child's Pose)
+    - interval: 2min @note(貓牛式 Cat-Cow)
+    - interval: 3min @note(仰臥扭轉 Reclined Twist)
+    - interval: 5min @note(冥想 Meditation)
+
+  "戰士流動瑜伽":
+    - sport: yoga
+    - warmup: 5min @note(動態熱身)
+    - repeat(3):
+      - interval: 5breaths @note(戰士一式 Warrior I)
+      - interval: 5breaths @note(戰士二式 Warrior II)
+      - interval: 5breaths @note(戰士三式 Warrior III)
+      - recovery: 30s @note(山式 Tadasana)
+    - cooldown: 5min @note(攤屍式)
+
+  "核心穩定瑜伽":
+    - sport: yoga
+    - warmup: 5min
+    - repeat(4):
+      - interval: 30s @note(船式 Boat Pose)
+      - rest: 10s
+      - interval: 30s @note(側棒式 Side Plank)
+      - rest: 10s
+    - cooldown: 5min @note(嬰兒式)
+
+  "伸展與修復瑜伽":
+    - sport: yoga
+    - interval: 3min @note(鴿式 Pigeon Pose - 左)
+    - interval: 3min @note(鴿式 Pigeon Pose - 右)
+    - interval: 3min @note(蝴蝶式 Butterfly Pose)
+    - interval: 5min @note(靜坐)

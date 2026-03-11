@@ -1,0 +1,46 @@
+# Garmin Connect 訓練計畫 - 瑜伽系列 (5個範例)
+settings:
+  deleteSameNameWorkout: true
+
+workouts:
+  "瑜伽 - 活力晨間流動":
+    - sport: yoga
+    - warmup: 3min @note(調息與脖頸活動)
+    - repeat(5):
+      - interval: lap.button @note(拜日式 A)
+    - interval: 2min @note(幻椅式停留)
+    - cooldown: 3min @note(大休息)
+
+  "瑜伽 - 脊椎護理":
+    - sport: yoga
+    - interval: 2min @note(貓牛式流動)
+    - interval: 2min @note(針眼式 - 左)
+    - interval: 2min @note(針眼式 - 右)
+    - interval: 3min @note(眼鏡蛇式停留)
+    - interval: 3min @note(大休息)
+
+  "瑜伽 - 核心平衡與專注":
+    - sport: yoga
+    - warmup: 5min @note(動態熱身)
+    - repeat(3):
+      - interval: 30s @note(船式穩定)
+      - interval: 30s @note(斜板式支撐)
+      - interval: 30s @note(戰士三式平衡)
+      - rest: 15s
+    - cooldown: 5min @note(嬰兒式)
+
+  "瑜伽 - 深度開髖":
+    - sport: yoga
+    - interval: 3min @note(下犬式活動)
+    - interval: 3min @note(蜥蜴式伸展 - 左)
+    - interval: 3min @note(蜥蜴式伸展 - 右)
+    - interval: 3min @note(鴿式伸展 - 左)
+    - interval: 3min @note(鴿式伸展 - 右)
+    - cooldown: 2min @note(快樂嬰兒式)
+
+  "瑜伽 - 晚間修復冥想":
+    - sport: yoga
+    - interval: 2min @note(蝴蝶式伸展)
+    - interval: 3min @note(仰臥脊椎扭轉)
+    - interval: 5min @note(靠牆倒立位)
+    - interval: 10min @note(靜坐冥想)

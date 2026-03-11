@@ -1,0 +1,11 @@
+# example/yoga_1.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "瑜伽範例 1 - 活力晨間流動":
+    - sport: yoga
+    - warmup: 3min @note(調息與脖頸活動)
+    - repeat(5):
+      - interval: lap.button @note(拜日式 A)
+    - interval: 2min @note(幻椅式停留)
+    - cooldown: 3min @note(大休息)

@@ -1,0 +1,10 @@
+# example/yoga_5.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "瑜伽範例 5 - 晚間修復冥想":
+    - sport: yoga
+    - interval: 2min @note(蝴蝶式伸展)
+    - interval: 3min @note(仰臥脊椎扭轉)
+    - interval: 5min @note(靠牆倒立位)
+    - interval: 10min @note(靜坐冥想)

@@ -1,0 +1,50 @@
+# Garmin Connect 訓練計畫 - 肌力訓練系列 (5個範例)
+settings:
+  deleteSameNameWorkout: true
+
+workouts:
+  "肌力 A - 上肢水平推拉":
+    - sport: strength
+    - warmup: 5min @note(肩膀關節活動)
+    - repeat(3):
+      - interval: 10reps @note(槓鈴臥推)
+      - rest: 90s
+      - interval: 12reps @note(單臂啞鈴划船)
+      - rest: 90s
+    - cooldown: 5min @note(胸背伸展)
+
+  "肌力 B - 下肢推系列 (深蹲)":
+    - sport: strength
+    - warmup: 8min @note(髖關節啟動與自重深蹲)
+    - repeat(4):
+      - interval: 8reps @note(槓鈴背槓深蹲)
+      - rest: 120s
+    - cooldown: 5min @note(下肢靜態拉伸)
+
+  "肌力 C - 核心強化基礎":
+    - sport: strength
+    - warmup: 3min @note(貓牛式熱身)
+    - repeat(3):
+      - interval: 45s @note(棒式支撐 Plank)
+      - rest: 15s
+      - interval: 20reps @note(俄羅斯轉體)
+      - rest: 30s
+    - cooldown: 2min @note(腹部伸展)
+
+  "肌力 D - 肩膀穩定訓練":
+    - sport: strength
+    - warmup: 5min @note(彈力帶肩膀外旋)
+    - repeat(3):
+      - interval: 12reps @note(坐姿啞鈴肩推)
+      - rest: 60s
+      - interval: 15reps @note(啞鈴側平舉)
+      - rest: 60s
+    - cooldown: 3min @note(肩膀放鬆)
+
+  "肌力 E - 下肢拉系列 (硬舉)":
+    - sport: strength
+    - warmup: 10min @note(動態伸展與核心啟動)
+    - repeat(3):
+      - interval: 6reps @note(傳統槓鈴硬舉)
+      - rest: 180s
+    - cooldown: 5min @note(腰背放鬆)

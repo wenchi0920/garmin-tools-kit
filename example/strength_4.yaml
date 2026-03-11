@@ -1,0 +1,13 @@
+# example/strength_4.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "肌力範例 4 - 肩膀穩定訓練":
+    - sport: strength
+    - warmup: 5min @note(彈力帶肩膀外旋)
+    - repeat(3):
+      - interval: 12reps @note(坐姿啞鈴肩推)
+      - rest: 60s
+      - interval: 15reps @note(啞鈴側平舉)
+      - rest: 60s
+    - cooldown: 3min @note(肩膀放鬆)

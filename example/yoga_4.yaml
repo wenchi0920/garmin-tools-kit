@@ -1,0 +1,12 @@
+# example/yoga_4.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "瑜伽範例 4 - 深度開髖":
+    - sport: yoga
+    - interval: 3min @note(下犬式活動)
+    - interval: 3min @note(蜥蜴式伸展 - 左)
+    - interval: 3min @note(蜥蜴式伸展 - 右)
+    - interval: 3min @note(鴿式伸展 - 左)
+    - interval: 3min @note(鴿式伸展 - 右)
+    - cooldown: 2min @note(快樂嬰兒式)

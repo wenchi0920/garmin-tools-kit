@@ -1,0 +1,11 @@
+# example/strength_2.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "肌力範例 2 - 下肢推 (深蹲)":
+    - sport: strength
+    - warmup: 8min @note(髖關節啟動與自重深蹲)
+    - repeat(4):
+      - interval: 8reps @note(槓鈴背槓深蹲)
+      - rest: 120s
+    - cooldown: 5min @note(下肢靜態拉伸)

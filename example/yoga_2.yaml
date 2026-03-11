@@ -1,0 +1,11 @@
+# example/yoga_2.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "瑜伽範例 2 - 脊椎護理":
+    - sport: yoga
+    - interval: 2min @note(貓牛式流動)
+    - interval: 2min @note(針眼式 - 左)
+    - interval: 2min @note(針眼式 - 右)
+    - interval: 3min @note(眼鏡蛇式停留)
+    - interval: 3min @note(大休息)

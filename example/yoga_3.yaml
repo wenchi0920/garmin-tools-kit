@@ -1,0 +1,13 @@
+# example/yoga_3.yaml
+settings:
+  deleteSameNameWorkout: true
+workouts:
+  "瑜伽範例 3 - 核心平衡與專注":
+    - sport: yoga
+    - warmup: 5min @note(動態熱身)
+    - repeat(3):
+      - interval: 30s @note(船式穩定)
+      - interval: 30s @note(斜板式支撐)
+      - interval: 30s @note(戰士三式平衡)
+      - rest: 15s
+    - cooldown: 5min @note(嬰兒式)

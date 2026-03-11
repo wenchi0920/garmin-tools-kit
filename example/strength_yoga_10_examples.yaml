@@ -1,0 +1,84 @@
+# Garmin Connect 訓練計畫 - 肌力訓練與瑜伽範例 (DSL 格式)
+
+settings:
+  deleteSameNameWorkout: true
+
+workouts:
+  # --- 肌力訓練 (Strength Training) ---
+  "自由重量 A - 深蹲":
+    - sport: strength
+    - warmup: 5min @note(關節熱身)
+    - repeat(3):
+      - interval: 10reps @note(槓鈴背槓深蹲)
+      - rest: 90s
+    - cooldown: 5min @note(靜態拉伸)
+
+  "自由重量 B - 臥推":
+    - sport: strength
+    - warmup: 5min @note(肩膀與胸部活動)
+    - repeat(3):
+      - interval: 10reps @note(槓鈴臥推)
+      - rest: 90s
+    - cooldown: 5min @note(靜態拉伸)
+
+  "自由重量 C - 划船":
+    - sport: strength
+    - warmup: 5min @note(背部肌群啟動)
+    - repeat(3):
+      - interval: 12reps @note(俯身槓鈴划船)
+      - rest: 90s
+    - cooldown: 5min @note(靜態拉伸)
+
+  "自由重量 D - 硬舉":
+    - sport: strength
+    - warmup: 8min @note(髖關節與核心熱身)
+    - repeat(3):
+      - interval: 8reps @note(傳統硬舉)
+      - rest: 120s
+    - cooldown: 5min @note(靜態拉伸)
+
+  "自由重量 E - 肩推":
+    - sport: strength
+    - warmup: 5min @note(肩袖肌群熱身)
+    - repeat(3):
+      - interval: 12reps @note(站姿槓鈴肩推)
+      - rest: 90s
+    - cooldown: 5min @note(靜態拉伸)
+
+  # --- 瑜伽 (Mobility) ---
+  "睡前放鬆瑜伽":
+    - sport: yoga
+    - interval: 1min @note(嬰兒式放鬆)
+    - interval: 2min @note(貓牛式流動)
+    - interval: 3min @note(仰臥脊椎扭轉)
+    - interval: 2min @note(攤屍式)
+
+  "晨間流動瑜伽":
+    - sport: yoga
+    - warmup: 3min @note(呼吸與調息)
+    - repeat(5):
+      - interval: lap.button @note(拜日式 A)
+    - cooldown: 2min @note(靜心)
+
+  "核心瑜伽":
+    - sport: yoga
+    - warmup: 5min @note(動態熱身)
+    - repeat(3):
+      - interval: 30s @note(船式核心穩定)
+      - interval: 30s @note(側棒式挑戰)
+      - recovery: 15s
+    - cooldown: 5min @note(拉伸放鬆)
+
+  "下肢伸展瑜伽":
+    - sport: yoga
+    - interval: 3min @note(鴿式伸展 - 左)
+    - interval: 3min @note(鴿式伸展 - 右)
+    - interval: 2min @note(下犬式停留)
+    - interval: 2min @note(前彎伸展)
+
+  "全身修復瑜伽":
+    - sport: yoga
+    - interval: 2min @note(蝴蝶式伸展)
+    - interval: 3min @note(眼鏡蛇式)
+    - interval: 2min @note(快樂嬰兒式)
+    - interval: 3min @note(大休息)
