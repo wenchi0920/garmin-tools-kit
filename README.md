@@ -1,5 +1,6 @@
 # Garmin Tool Kit (v1.4.1) 🚀
 
+
 這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包現在已全面整合為單一入口 `garmin_tools.py`。
 
 ## 📋 目錄
@@ -111,6 +112,7 @@ GARMIN_PASSWORD=your_password
 - `--env-file [ENV_FILE]`: 指定自訂的環境變數檔案路徑 (預設為 `.env`)。
 - `-ss SESSION, --session SESSION`: 指定 SSO 憑證儲存目錄 (預設為 `.garth`)。
 - `--over-write`: 如果檔案存在則覆蓋，否則忽略已存在的檔案。
+- `--progress`: 顯示目前進度，啟用表示用 tqdm 顯示目前進度，並同時維持日誌輸出。
 
 ### 子命令 (Subcommands)
 1. **`activity`**: 活動匯出。
@@ -336,6 +338,9 @@ workouts:
 - **2026-03-10**: **v1.4.1** - 文件更新與範例完善。
     - 補齊 `workout delete`, `vo2max`, `race-event`, `health` 等子命令範例。
     - 修正 `README.md` 中遺漏的參數說明。
+- **2026-03-11**: **v1.4.1** - 🚀 **功能更新：新增 `--progress` 進度顯示模式。**
+    - 支援活動下載、健康數據 (Health/Sleep/HRV) 範圍抓取、Workout 批量上傳等任務的進度條顯示。
+    - 整合 `tqdm` 與 `loguru`，確保進度條顯示時日誌輸出不閃爍。
 
 ## 13. 免責聲明
 

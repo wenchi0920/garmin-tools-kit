@@ -52,7 +52,7 @@ class HealthClient(Client):
             logger.error(f"獲取日期 {date_str} 的健康摘要失敗: {e}")
             return None
 
-    def get_daily_summaries(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[HealthSummary]:
+    def get_daily_summaries(self, start_date: Union[str, date], end_date: Union[str, date], show_progress: bool = False) -> List[HealthSummary]:
         """
         Get daily health summaries for a date range.
         """
@@ -63,10 +63,17 @@ class HealthClient(Client):
             
         results = []
         current_date = start_date
-        while current_date <= end_date:
+        total_days = (end_date - start_date).days + 1
+        
+        iterable = range(total_days)
+        if show_progress:
+            from tqdm import tqdm
+            iterable = tqdm(iterable, desc="獲取每日摘要", unit="天")
+            
+        for i in iterable:
+            current_date = start_date + timedelta(days=i)
             data = self.get_daily_summary(current_date)
             if data:
                 results.append(data)
-            current_date += timedelta(days=1)
             
         return results

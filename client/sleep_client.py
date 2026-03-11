@@ -37,7 +37,7 @@ class SleepClient(Client):
             logger.error(f"獲取日期 {date_str} 的睡眠數據失敗: {e}")
             return None
 
-    def get_sleep_data_range(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[SleepData]:
+    def get_sleep_data_range(self, start_date: Union[str, date], end_date: Union[str, date], show_progress: bool = False) -> List[SleepData]:
         """
         Get sleep data for a date range.
         """
@@ -47,11 +47,17 @@ class SleepClient(Client):
             end_date = date.fromisoformat(end_date)
             
         results = []
-        current_date = start_date
-        while current_date <= end_date:
+        total_days = (end_date - start_date).days + 1
+        
+        iterable = range(total_days)
+        if show_progress:
+            from tqdm import tqdm
+            iterable = tqdm(iterable, desc="獲取睡眠數據", unit="天")
+            
+        for i in iterable:
+            current_date = start_date + timedelta(days=i)
             data = self.get_sleep_data(current_date)
             if data:
                 results.append(data)
-            current_date += timedelta(days=1)
             
         return results

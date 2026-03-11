@@ -6,6 +6,7 @@ Changelog:
 2026-03-08: 1.2.1 - 初始整合版本，合併 10 個獨立工具為統一 CLI 入口。
 2026-03-09: 1.4.0 - 命名重構與輸出邏輯優化 (支援 --summary 與 -o 同時使用)。
 2026-03-10: 1.4.1 - 完善 README.md 文件與補齊 subcommand 範例。
+2026-03-11: 1.4.1 - 新增 --progress 全域參數，支援 tqdm 進度條與 log 同步輸出。
 """
 import argparse
 import getpass
@@ -33,7 +34,7 @@ from models.raceEventModel import RaceEventModel
 # 共通工具函式 (Utility Functions)
 # ==============================================================================
 
-def configure_runtime_logger(verbosity: int) -> None:
+def configure_runtime_logger(verbosity: int, use_progress: bool = False) -> None:
     """設定 Loguru 日誌層級與格式"""
     logger.remove()
     if verbosity == 0:
@@ -42,11 +43,23 @@ def configure_runtime_logger(verbosity: int) -> None:
         level = "DEBUG"
     else:
         level = "TRACE"
-    logger.add(
-        sys.stderr,
-        level=level,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>"
-    )
+    
+    log_format = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>"
+    
+    if use_progress:
+        # 當啟用 progress 時，使用 tqdm.write 來避免破壞進度條
+        logger.add(
+            lambda msg: tqdm.write(msg, end=""),
+            level=level,
+            format=log_format,
+            colorize=True
+        )
+    else:
+        logger.add(
+            sys.stderr,
+            level=level,
+            format=log_format
+        )
 
 
 def load_env_file(file_path: str) -> Dict[str, str]:
@@ -115,7 +128,8 @@ def execute_activity_export(args: argparse.Namespace):
     if not os.path.exists(args.directory):
         os.makedirs(args.directory, exist_ok=True)
 
-    for activity in tqdm(activities, desc="下載活動進度", unit="個"):
+    iterable = tqdm(activities, desc="下載活動進度", unit="個") if args.progress else activities
+    for activity in iterable:
         client.download_activity(
             activity, format=args.format, directory=args.directory,
             original_time=args.originaltime, desc=args.desc,
@@ -166,7 +180,8 @@ def manage_workout_workflow(args: argparse.Namespace):
                     if w["workoutName"] in existing_map:
                         client.delete_workout(existing_map[w["workoutName"]])
 
-            for w in workouts_to_upload:
+            iterable = tqdm(workouts_to_upload, desc="上傳計畫進度", unit="個") if args.progress else workouts_to_upload
+            for w in iterable:
                 result = client.upload_workout(w)
                 uploaded_id_map[w["workoutName"]] = result.get("workoutId")
                 logger.success(f"計畫 '{w['workoutName']}' 上傳成功! ID: {result.get('workoutId')}")
@@ -192,7 +207,7 @@ def fetch_daily_health_metrics(args: argparse.Namespace):
     client = HealthClient(email=username, password=password, session_dir=args.session)
 
     if args.start_date:
-        data_list = client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat())
+        data_list = client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
         metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
     else:
         data = client.get_daily_summary(args.date)
@@ -225,7 +240,7 @@ def fetch_sleep_analytics(args: argparse.Namespace):
     client = SleepClient(email=username, password=password, session_dir=args.session)
 
     if args.start_date:
-        data_list = client.get_sleep_data_range(args.start_date, args.end_date or date.today().isoformat())
+        data_list = client.get_sleep_data_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
         metric_collection = {"data": [s.model_dump(mode="json") for s in data_list]}
     else:
         data = client.get_sleep_data(args.date)
@@ -293,7 +308,7 @@ def retrieve_hrv_readings(args: argparse.Namespace):
     client = HrvClient(email=username, password=password, session_dir=args.session)
 
     if args.start_date:
-        data_list = client.get_hrv_data_range(args.start_date, args.end_date or date.today().isoformat())
+        data_list = client.get_hrv_data_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
         metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
     else:
         data = client.get_hrv_data(args.date)
@@ -447,6 +462,7 @@ def main():
     parser.add_argument("--env-file", nargs="?", const=".env", help="使用 env file (預設: .env)")
     parser.add_argument("-ss", "--session", default=".garth", help="SSO 目錄")
     parser.add_argument("--over-write", action="store_true", help="如果檔案存在則覆蓋，否則忽略已存在的檔案")
+    parser.add_argument("--progress", action="store_true", help="顯示目前進度，啟用表示 用 tqdm 顯示目前進度/也要顯示log")
 
     subparsers = parser.add_subparsers(dest="command", required=True, help="子命令")
 
@@ -501,7 +517,7 @@ def main():
     p_hr.add_argument("--summary", action="store_true")
 
     args = parser.parse_args()
-    configure_runtime_logger(args.verbosity)
+    configure_runtime_logger(args.verbosity, args.progress)
 
     handlers = {
         "activity": execute_activity_export,
