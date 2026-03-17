@@ -3,16 +3,7 @@ services:
     build: .
     container_name: garmin-tools-kit
     volumes:
-      - ./client:/app/client
-      - ./models:/app/models
-      - ./data:/app/data
-      - ./example:/app/example
-      - ./test_data:/app/test_data
-      - ./tests:/app/tests
-      - ./.garth:/app/.garth
-      - ./garmin_tools.py:/app/garmin_tools.py
-      - ./requirements.txt:/app/requirements.txt
-      - ./GEMINI.md:/app/GEMINI.md
+      - ./:/app/
     environment:
       - TZ=Asia/Taipei
       - GARMIN_USERNAME
