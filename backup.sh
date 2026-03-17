@@ -21,7 +21,7 @@ mkdir -p /app/data
 
 # 1. 活動數據 (備份最新 20 筆，避免遺漏同步較慢的活動)
 echo "📦 [1/8] 備份活動數據 (最新 20 筆)..."
-python3 garmin_tools.py activity --count 20 --format original --originaltime --progress
+python3 garmin_tools.py activity --count 20 --format original --originaltime 
 
 # 2. 健康摘要 (步數、心率等)
 echo "❤️ [2/8] 備份健康摘要 (${YESTERDAY})..."
