@@ -525,12 +525,12 @@ def fetch_race_calendar(args: argparse.Namespace):
         if not args.over_write and os.path.exists(output_path):
             logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            output_data = [e.model_dump(by_alias=True) for e in validated]
+            output_data = [e.model_dump(mode="json", by_alias=True) for e in validated]
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(output_data, f, indent=4, ensure_ascii=False)
             logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
-        print(json.dumps([e.model_dump(by_alias=True) for e in validated], indent=4, ensure_ascii=False))
+        print(json.dumps([e.model_dump(mode="json", by_alias=True) for e in validated], indent=4, ensure_ascii=False))
 
 
 # ==============================================================================
