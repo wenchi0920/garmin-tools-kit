@@ -11,6 +11,7 @@ Changelog:
 2026-03-11: 1.4.2 - 版本手動更新。
 2026-03-12: 1.4.2 - 實作資料存放標準化 (Data Storage Standardization) 與自動目錄生成，符合 garmin_tools.md 規範。
 2026-03-12: 1.4.2 - 重構 COMMAND_HANDLERS 結構並修正 Docker 備份排程 (AM 11:00) 以符合 GEMINI.md 規範。
+2026-03-17: 1.4.3 - 修正 fetch_race_calendar 忽略日期範圍 (-sd, -ed) 的 bug 並優化空結果 summary 輸出。
 """
 import argparse
 import getpass
@@ -491,8 +492,13 @@ def fetch_race_calendar(args: argparse.Namespace):
     username, password = resolve_user_auth(args)
     client = RaceEventClient(email=username, password=password, session_dir=args.session)
 
-    start_date = args.date if args.date else args.start_date
-    end_date = args.date if args.date else args.end_date
+    if args.start_date:
+        start_date = args.start_date
+        end_date = args.end_date or date.today().isoformat()
+    else:
+        start_date = args.date
+        end_date = args.date
+
     raw_events = client.list_events(start_date=start_date, end_date=end_date)
 
     validated = []
@@ -504,8 +510,11 @@ def fetch_race_calendar(args: argparse.Namespace):
 
     if args.summary:
         print("\n" + "=" * 60)
-        for e in sorted(validated, key=lambda x: x.event_date):
-            print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
+        if not validated:
+            print(f"📅 {start_date} ~ {end_date} 期間無賽事紀錄")
+        else:
+            for e in sorted(validated, key=lambda x: x.event_date):
+                print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
         print("=" * 60)
 
     output_path = args.output
