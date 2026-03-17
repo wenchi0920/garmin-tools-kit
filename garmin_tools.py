@@ -9,6 +9,8 @@ Changelog:
 2026-03-11: 1.4.1 - 新增 --progress 全域參數，支援 tqdm 進度條與 log 同步輸出。
 2026-03-11: 1.4.1 - 支援預設執行指令：不帶子命令時預設執行 activity -c 5。
 2026-03-11: 1.4.2 - 版本手動更新。
+2026-03-12: 1.4.2 - 實作資料存放標準化 (Data Storage Standardization) 與自動目錄生成，符合 garmin_tools.md 規範。
+2026-03-12: 1.4.2 - 重構 COMMAND_HANDLERS 結構並修正 Docker 備份排程 (AM 11:00) 以符合 GEMINI.md 規範。
 """
 import argparse
 import getpass
@@ -112,6 +114,30 @@ def format_seconds(seconds: int) -> str:
     return f"{hours}時{minutes}分"
 
 
+def resolve_default_output_path(command: str, args: argparse.Namespace) -> str:
+    """根據子命令與參數產生預設儲存路徑 (符合 garmin_tools.md 規範)"""
+    base_dir = "data"
+    sub_dir = command
+    
+    # 特殊處理: body-battery 包含年份資料夾
+    if command == "body-battery":
+        year = args.date[:4] if args.date else (args.start_date[:4] if args.start_date else datetime.now().strftime("%Y"))
+        sub_dir = f"body-battery_{year}"
+    
+    target_dir = os.path.join(base_dir, sub_dir)
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir, exist_ok=True)
+        
+    if args.start_date and args.end_date:
+        filename = f"{command}_{args.start_date}_{args.end_date}.json"
+    elif args.start_date:
+        filename = f"{command}_{args.start_date}_latest.json"
+    else:
+        filename = f"{command}_{args.date}.json"
+        
+    return os.path.join(target_dir, filename)
+
+
 # ==============================================================================
 # 子命令處理邏輯 (Command Handlers)
 # ==============================================================================
@@ -158,7 +184,14 @@ def manage_workout_workflow(args: argparse.Namespace):
 
     elif args.workout_command == "get":
         workout_data = client.get_workout(args.id)
-        output_file = args.output or f"workout_{args.id}.yaml"
+        # 修正: 預設儲存至 data/workout/
+        target_dir = "data/workout"
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
+            
+        filename = f"workout_{args.id}.yaml"
+        output_file = args.output or os.path.join(target_dir, filename)
+        
         if not args.over_write and os.path.exists(output_file):
             logger.info(f"檔案已存在，跳過儲存: {output_file}")
         else:
@@ -226,13 +259,17 @@ def fetch_daily_health_metrics(args: argparse.Namespace):
                 f"心率: 靜止 {summary_entry.get('restingHeartRate')} | 最低 {summary_entry.get('minHeartRate')} | 最高 {summary_entry.get('maxHeartRate')}")
             print(f"能量: 身體能量當前 {summary_entry.get('bodyBatteryMostRecentValue')} | 壓力平均 {summary_entry.get('averageStressLevel')}")
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("health", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -258,13 +295,17 @@ def fetch_sleep_analytics(args: argparse.Namespace):
             print(
                 f"時間: 總計 {format_seconds(dto.get('sleepTimeSeconds', 0))} | 深層 {format_seconds(dto.get('deepSleepSeconds', 0))}")
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("sleep", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -294,13 +335,17 @@ def process_weight_tracking(args: argparse.Namespace):
             print(
                 f"日期: {dt} | 體重: {summary_entry.get('weight', 0) / 1000.0:.2f} kg | BMI: {summary_entry.get('bmi', 'N/A')} | 體脂: {summary_entry.get('bodyFat', 'N/A')}%")
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("weight", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -322,13 +367,17 @@ def retrieve_hrv_readings(args: argparse.Namespace):
         for item in items:
             if "hrvReadings" in item: del item["hrvReadings"]
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("hrv", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -350,13 +399,17 @@ def analyze_body_battery(args: argparse.Namespace):
             print(
                 f"日期: {summary_entry.get('calendarDate')} | 充電: {summary_entry.get('charged')} | 消耗: {summary_entry.get('drained')} | 評分: {summary_entry.get('bodyBatteryDynamicFeedbackEvent', {}).get('feedbackShortType')}")
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("body-battery", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -386,13 +439,17 @@ def evaluate_vo2max_trends(args: argparse.Namespace):
                 print(
                     f"日期: {g.get('calendarDate')} | VO2 Max: {g.get('vo2MaxValue')} | 體能年齡: {g.get('fitnessAge')}")
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("vo2max", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(metric_collection, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
@@ -414,7 +471,19 @@ def report_heart_rate_indicators(args: argparse.Namespace):
         for a in metric_collection.get("recent_activities", []):
             print(f"活動: {a.get('startTimeLocal')} | Max: {a.get('maxHr'):.0f} | {a.get('activityName')}")
 
-    if not args.summary:
+    # 加入與其他子命令一致的輸出邏輯
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("max-hr", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
+        else:
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(metric_collection, f, indent=4, ensure_ascii=False)
+            logger.success(f"資料已儲存至: {output_path}")
+    elif not args.summary:
         print(json.dumps(metric_collection, indent=4, ensure_ascii=False))
 
 
@@ -439,14 +508,18 @@ def fetch_race_calendar(args: argparse.Namespace):
             print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
         print("=" * 60)
 
-    if args.output:
-        if not args.over_write and os.path.exists(args.output):
-            logger.info(f"檔案已存在，跳過儲存: {args.output}")
+    output_path = args.output
+    if not output_path and not args.summary:
+        output_path = resolve_default_output_path("race-event", args)
+
+    if output_path:
+        if not args.over_write and os.path.exists(output_path):
+            logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:
             output_data = [e.model_dump(by_alias=True) for e in validated]
-            with open(args.output, "w", encoding="utf-8") as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(output_data, f, indent=4, ensure_ascii=False)
-            logger.success(f"資料已儲存至: {args.output}")
+            logger.success(f"資料已儲存至: {output_path}")
     elif not args.summary:
         print(json.dumps([e.model_dump(by_alias=True) for e in validated], indent=4, ensure_ascii=False))
 
@@ -455,7 +528,26 @@ def fetch_race_calendar(args: argparse.Namespace):
 # CLI 入口 (Entry Point)
 # ==============================================================================
 
+# ==============================================================================
+# 全域常數與對應處理函式 (Constants & Command Handlers)
+# ==============================================================================
+
+COMMAND_HANDLERS = {
+    "activity": execute_activity_export,
+    "workout": manage_workout_workflow,
+    "health": fetch_daily_health_metrics,
+    "sleep": fetch_sleep_analytics,
+    "weight": process_weight_tracking,
+    "hrv": retrieve_hrv_readings,
+    "body-battery": analyze_body_battery,
+    "vo2max": evaluate_vo2max_trends,
+    "max-hr": report_heart_rate_indicators,
+    "race-event": fetch_race_calendar
+}
+
+
 def main():
+    """程式入口點 (Entry Point)"""
     parser = argparse.ArgumentParser(description="Garmin Connect 整合工具包 (v" + VERSION + ")")
     parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     parser.add_argument("-v", "--verbosity", action="count", default=0, help="詳細度")
@@ -475,7 +567,7 @@ def main():
     activity_parser.add_argument("-sd", "--start_date")
     activity_parser.add_argument("-ed", "--end_date")
     activity_parser.add_argument("-f", "--format", choices=["gpx", "tcx", "original", "json"], default="original")
-    activity_parser.add_argument("-d", "--directory", default="./data")
+    activity_parser.add_argument("-d", "--directory", default="data/activity")
     activity_parser.add_argument("-ot", "--originaltime", action="store_true")
     activity_parser.add_argument("--desc", nargs="?", const=True)
 
@@ -500,24 +592,23 @@ def main():
         p.add_argument("-o", "--output")
 
     # Others
-    add_date_range_args(subparsers.add_parser("health", help="每日健康摘要"))
-    add_date_range_args(subparsers.add_parser("sleep", help="睡眠紀錄"))
-    add_date_range_args(subparsers.add_parser("body-battery", help="身體能量指數"))
-    add_date_range_args(subparsers.add_parser("vo2max", help="VO2 Max 與訓練狀態"))
-    add_date_range_args(subparsers.add_parser("race-event", help="賽事清單"))
+    add_date_range_args(subparsers.add_parser("health", help="每日健康摘要，包含步數、心率與能量消耗"))
+    add_date_range_args(subparsers.add_parser("sleep", help="睡眠紀錄與分析，包含分數與階段時間"))
+    add_date_range_args(subparsers.add_parser("body-battery", help="身體能量指數 (Body Battery) 趨勢與壓力摘要"))
+    add_date_range_args(subparsers.add_parser("vo2max", help="VO2 Max 趨勢與目前訓練狀態報告"))
+    add_date_range_args(subparsers.add_parser("race-event", help="賽事清單與行事曆看板"))
 
-    p_hrv = subparsers.add_parser("hrv", help="HRV 數據")
+    p_hrv = subparsers.add_parser("hrv", help="HRV (心率變異度) 數據與摘要")
     add_date_range_args(p_hrv)
-    p_hrv.add_argument("--detailed", action="store_true")
+    p_hrv.add_argument("--detailed", action="store_true", help="包含睡眠期間的高頻詳細採樣點資料")
 
-    p_weight = subparsers.add_parser("weight", help="體重數據")
+    p_weight = subparsers.add_parser("weight", help="體重數據，支援 BMI 與體脂趨勢分析")
     add_date_range_args(p_weight)
-    p_weight.add_argument("--upload", type=float, help="上傳體重 (kg)")
+    p_weight.add_argument("--upload", type=float, metavar="KG", help="上傳一筆新的體重紀錄 (kg)")
 
-    p_hr = subparsers.add_parser("max-hr", help="心率指標")
-    p_hr.add_argument("-d", "--date", default=date.today().isoformat())
-    p_hr.add_argument("-l", "--limit", type=int, default=5)
-    p_hr.add_argument("--summary", action="store_true")
+    p_hr = subparsers.add_parser("max-hr", help="最大心率與安靜心率統計看板")
+    add_date_range_args(p_hr)
+    p_hr.add_argument("-l", "--limit", type=int, default=5, metavar="LIMIT", help="查詢最近活動的最大心率筆數")
 
     args = parser.parse_args()
     
@@ -537,27 +628,14 @@ def main():
         setattr(args, "start_date", None)
         setattr(args, "end_date", None)
         setattr(args, "format", "original")
-        setattr(args, "directory", "./data")
+        setattr(args, "directory", "data/activity")
         setattr(args, "originaltime", False)
         setattr(args, "desc", None)
 
     configure_runtime_logger(args.verbosity, args.progress)
 
-    handlers = {
-        "activity": execute_activity_export,
-        "workout": manage_workout_workflow,
-        "health": fetch_daily_health_metrics,
-        "sleep": fetch_sleep_analytics,
-        "weight": process_weight_tracking,
-        "hrv": retrieve_hrv_readings,
-        "body-battery": analyze_body_battery,
-        "vo2max": evaluate_vo2max_trends,
-        "max-hr": report_heart_rate_indicators,
-        "race-event": fetch_race_calendar
-    }
-
     try:
-        handlers[args.command](args)
+        COMMAND_HANDLERS[args.command](args)
     except Exception as e:
         logger.error(f"程式執行失敗: {e}")
         if args.verbosity > 0: logger.exception("詳細錯誤：")

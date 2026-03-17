@@ -2,6 +2,8 @@
 
 這是一個基於 `tkinter` 開發的圖形化使用者介面 (GUI)，旨在提供更直觀的方式來批次下載 Garmin Connect 上的各項生理數據與活動紀錄。
 
+對應檔案 `garmin_gui.py`
+
 ## 📋 介面功能摘要
 
 1.  **自動化帳號登入**：啟動時自動讀取 `.env` 檔案，並將 `GARMIN_USERNAME` 與 `GARMIN_PASSWORD` 帶入輸入框。執行任務後也會自動更新 `.env`。

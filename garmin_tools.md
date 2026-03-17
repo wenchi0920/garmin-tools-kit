@@ -13,6 +13,26 @@
 - **週期排程與管理**：自動刪除 Garmin 上的同名計畫，一次性排入整週課表至行事曆，並支援備份現有課表。
 - **全方位健康追蹤**：包含 HRV、睡眠分數、Body Battery (身體能量趨勢)、體重變化、VO2 Max (最大攝氧量) 及最大心率等生理指標查詢與美化輸出 (`--summary`)。
 
+
+### data 存放方式
+
+所有 預設 在 data/ 下 
+
+每個 字命令 會建立一個 子命令 資料夾
+
+#### **`activity` (活動匯出)** : data/activity/activity_2026-02-11_21-37-05+0800.fit
+#### **`workout` (訓練計畫)** : data/workout
+#### **`body-battery` (身體能量指數)** : data/body-battery_2026/body-battery_2026-03-04_2026-03-11.json
+#### **`health` (健康摘要)** : data/health/health_2026-03-04_2026-03-11.json
+#### **`hrv` (HRV 數據)** : data/hrv/hrv_2026-03-04_2026-03-11.json
+#### **`race-event` (賽事清單)** : data/race-event/race-event_2026-03-04_2026-03-11.json
+#### **`sleep` (睡眠紀錄)** : data/sleep/sleep_2026-03-04_2026-03-11.json
+#### **`vo2max` (VO2 Max 與訓練狀態)** : data/vo2max/vo2max_2026-03-04_2026-03-11.json
+#### **`weight` (體重數據)** : data/weight/weight_2026-03-04_2026-03-11.json
+#### **`max-hr` (心率指標)** : data/max-hr/max-hr_2026-03-04_2026-03-11.json
+
+
+
 ## 3. 跨平台獨立執行檔下載 (免安裝 Python)
 若您不想安裝 Python 環境，可以直接從 [GitHub Releases](../../releases) 下載對應作業系統的編譯版本：
 - **Windows**: 下載 `garmin-tools-windows.exe`。

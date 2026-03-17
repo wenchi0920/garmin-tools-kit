@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc6-dev \
     tzdata \
     vim \
+    procps \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # 設定時區為台北
