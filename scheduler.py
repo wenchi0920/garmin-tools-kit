@@ -69,6 +69,14 @@ def run_backup_job():
     except Exception as e:
         logger.exception(f"💥 執行備份時發生未預期的異常: {e}")
 
+def update_heartbeat():
+    """更新心跳檔案時間戳"""
+    try:
+        with open("/tmp/scheduler_heartbeat", "w") as f:
+            f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    except Exception:
+        pass
+
 def main():
     # 設定多個備份時間點
     target_times = ["08:00", "11:00", "22:00"]
@@ -77,6 +85,9 @@ def main():
     logger.info(f"💾 持久化日誌目錄: {LOG_DIR}")
     
     while True:
+        # 更新心跳
+        update_heartbeat()
+        
         now = datetime.datetime.now()
         current_time = now.strftime("%H:%M")
         
