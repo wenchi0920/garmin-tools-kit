@@ -21,35 +21,35 @@ mkdir -p /app/data
 
 # 1. 活動數據 (備份最新 20 筆，避免遺漏同步較慢的活動)
 echo "📦 [1/8] 備份活動數據 (最新 20 筆)..."
-python3 garmin_tools.py activity --count 20 --format original --originaltime 
+python3 garmin_tools.py activity --count 20 --format original --originaltime -v 
 
 # 2. 健康摘要 (步數、心率等)
 echo "❤️ [2/8] 備份健康摘要 (${YESTERDAY})..."
-python3 garmin_tools.py health --date "${YESTERDAY}" --progress
+python3 garmin_tools.py health --date "${YESTERDAY}" -v
 
 # 3. 睡眠分析
 echo "😴 [3/8] 備份睡眠數據 (${YESTERDAY})..."
-python3 garmin_tools.py sleep --date "${YESTERDAY}" --progress
+python3 garmin_tools.py sleep --date "${YESTERDAY}" -v
 
 # 4. HRV (心率變異度)
 echo "📊 [4/8] 備份 HRV 數據 (${YESTERDAY})..."
-python3 garmin_tools.py hrv --date "${YESTERDAY}" --detailed --progress
+python3 garmin_tools.py hrv --date "${YESTERDAY}" --detailed -v
 
 # 5. Body Battery (身體能量)
 echo "⚡ [5/8] 備份 Body Battery (${YESTERDAY})..."
-python3 garmin_tools.py body-battery --date "${YESTERDAY}" --progress
+python3 garmin_tools.py body-battery --date "${YESTERDAY}" -v
 
 # 6. VO2 Max & 訓練狀態
 echo "🏃 [6/8] 備份 VO2 Max 趨勢..."
-python3 garmin_tools.py vo2max --date "${TODAY}" --progress
+python3 garmin_tools.py vo2max --date "${TODAY}" -v
 
 # 7. 體重紀錄
 echo "⚖️ [7/8] 備份體重歷史..."
-python3 garmin_tools.py weight --date "${TODAY}" --progress
+python3 garmin_tools.py weight --date "${TODAY}" -v
 
 # 8. 其他數據 (賽事、最大心率)
 echo "🏁 [8/8] 備份賽事與最大心率指標..."
-python3 garmin_tools.py race-event --date "${TODAY}" --progress
-python3 garmin_tools.py max-hr --limit 5 --progress
+python3 garmin_tools.py race-event --date "${TODAY}" -v
+python3 garmin_tools.py max-hr --limit 5 -v
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ 全量備份任務完成。"
