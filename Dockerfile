@@ -14,7 +14,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc6-dev \
     tzdata \
     vim \
-    cron \
     && rm -rf /var/lib/apt/lists/*
 
 # 設定時區為台北
@@ -28,12 +27,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 複製其餘專案文件
 COPY . .
 
-# 設定執行權限並建立排程 (每天 08:00 執行)
-RUN chmod +x /app/backup.sh && \
-    echo "00 08 * * * /app/backup.sh >> /var/log/cron.log 2>&1" > /etc/cron.d/garmin-backup && \
-    chmod 0644 /etc/cron.d/garmin-backup && \
-    crontab /etc/cron.d/garmin-backup && \
-    touch /var/log/cron.log
+# 設定執行權限
+RUN chmod +x /app/backup.sh
 
-# 預設執行 Bash 與啟動 cron (透過 printenv 將環境變數注入 cron)
-CMD printenv > /etc/environment && service cron start && tail -f /var/log/cron.log & /bin/bash
+# 預設啟動守護排程器 (scheduler.py)
+CMD ["python", "scheduler.py"]
