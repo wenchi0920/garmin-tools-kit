@@ -79,7 +79,7 @@ def update_heartbeat():
 
 def main():
     # 設定多個備份時間點
-    target_times = ["08:00", "11:00", "22:00"]
+    target_times = ["08:00", "11:00", "12:00", "22:00"]
     logger.info("🚀 Garmin Tool Kit 守護排程器已啟動...")
     logger.info(f"📅 預定執行時間: 每天 {', '.join(target_times)}")
     logger.info(f"💾 持久化日誌目錄: {LOG_DIR}")
