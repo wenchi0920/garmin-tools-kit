@@ -166,8 +166,12 @@ def execute_activity_export(args: argparse.Namespace):
     username, password = resolve_user_auth(args)
     client = ActivityClient(email=username, password=password, session_dir=args.session)
 
-    logger.info(f"正在獲取活動列表... 數量={args.count}, 範圍={args.start_date or '不限'} ~ {args.end_date or '不限'}")
-    activities = client.list_activities(count=args.count, start_date=args.start_date, end_date=args.end_date)
+    # 處理單日查詢或日期範圍
+    start_date = args.start_date or args.date
+    end_date = args.end_date or args.date
+
+    logger.info(f"正在獲取活動列表... 數量={args.count}, 範圍={start_date or '不限'} ~ {end_date or '不限'}")
+    activities = client.list_activities(count=args.count, start_date=start_date, end_date=end_date)
 
     if not activities:
         logger.warning("找不到符合條件的活動。")
@@ -527,10 +531,11 @@ def main():
     # Activity
     activity_parser = subparsers.add_parser("activity", help="活動匯出")
     activity_parser.add_argument("-c", "--count", default="1")
+    activity_parser.add_argument("-d", "--date", help="指定單一日期 (YYYY-MM-DD)")
     activity_parser.add_argument("-sd", "--start_date")
     activity_parser.add_argument("-ed", "--end_date")
     activity_parser.add_argument("-f", "--format", choices=["gpx", "tcx", "original", "json"], default="original")
-    activity_parser.add_argument("-d", "--directory", default="data/activity")
+    activity_parser.add_argument("--directory", default="data/activity")
     activity_parser.add_argument("-ot", "--originaltime", action="store_true")
     activity_parser.add_argument("--desc", nargs="?", const=True)
 
