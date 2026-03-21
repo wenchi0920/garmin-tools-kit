@@ -44,6 +44,8 @@
     *   **範例**: `activity_2026-03-21_08-30-00+0800_MorningRun.fit`
 *   `-c, --count`: 支援整數或 `all`。
 *   `-d, --date`: 指定單一日期 (YYYY-MM-DD)。
+*   `-sd, --start-date`: 篩選起始日期 (YYYY-MM-DD)。
+*   `-ed, --end-date`: 篩選結束日期 (YYYY-MM-DD)。
 *   `-f, --format`: 支援 `original` (FIT), `gpx`, `tcx`, `json`。
 *   `-ot, --originaltime`: 修正檔案的系統「建立/修改時間」，使其與運動時間同步（使用 GMT 時間戳）。
 *   `--directory`: 指定儲存目錄 (預設 `data/activity`)。
@@ -60,7 +62,7 @@
 *   `delete <ID>`: 徹底刪除指定計畫。
 
 ### 3.3 健康數據中心 (`health`)
-整合 23 項生理與訓練指標。所有指令皆支援 `-d, --date`, `-sd`, `-ed`, `--summary`, `-o` 通用參數。
+整合 23 項生理與訓練指標。所有指令皆支援 `-d, --date`, `-sd, --start-date`, `-ed, --end-date`, `--summary`, `-o` 通用參數。
 
 | 子命令 | 名稱 (名稱規則) | 檔案命名規則 (預設) | 功能描述與詳細說明 |
 | :--- | :--- | :--- | :--- |
@@ -89,7 +91,7 @@
 | `blood-pressure` | 血壓紀錄 | `blood-pressure_{日期}.json` | **血壓健康管理**。紀錄手動輸入或相容設備同步的收縮壓與舒張壓。 |
 
 ### 3.4 賽事管理 (`race-event`)
-**通用參數**: `-d, --date` (單日), `-sd`/`-ed` (範圍), `--summary` (文字摘要), `-o` (輸出路徑)。
+**通用參數**: `-d, --date` (單日), `-sd, --start-date` (範圍起始), `-ed, --end-date` (範圍結束), `--summary` (文字摘要), `-o` (輸出路徑)。
 *   支援查看特定日期或範圍內的賽事紀錄。
 *   `--summary` 會以時間軸形式美化輸出賽事清單。
 

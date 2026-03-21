@@ -532,8 +532,8 @@ def main():
     activity_parser = subparsers.add_parser("activity", help="活動匯出")
     activity_parser.add_argument("-c", "--count", default="1")
     activity_parser.add_argument("-d", "--date", help="指定單一日期 (YYYY-MM-DD)")
-    activity_parser.add_argument("-sd", "--start_date")
-    activity_parser.add_argument("-ed", "--end_date")
+    activity_parser.add_argument("-sd", "--start-date", "--start_date")
+    activity_parser.add_argument("-ed", "--end-date", "--end_date")
     activity_parser.add_argument("-f", "--format", choices=["gpx", "tcx", "original", "json"], default="original")
     activity_parser.add_argument("--directory", default="data/activity")
     activity_parser.add_argument("-ot", "--originaltime", action="store_true")
@@ -554,8 +554,8 @@ def main():
     # Race Event
     race_parser = subparsers.add_parser("race-event", help="賽事清單與行事曆看板")
     race_parser.add_argument("-d", "--date", default=date.today().isoformat())
-    race_parser.add_argument("-sd", "--start_date")
-    race_parser.add_argument("-ed", "--end_date")
+    race_parser.add_argument("-sd", "--start-date", "--start_date")
+    race_parser.add_argument("-ed", "--end-date", "--end_date")
     race_parser.add_argument("--summary", action="store_true")
     race_parser.add_argument("-o", "--output")
 
@@ -567,8 +567,8 @@ def main():
     def add_health_sub(sub_parser, name, help_text, has_detailed=False, has_upload=False, has_limit=False, has_from_file=False):
         p = sub_parser.add_parser(name, help=help_text)
         p.add_argument("-d", "--date", default=date.today().isoformat())
-        p.add_argument("-sd", "--start_date")
-        p.add_argument("-ed", "--end_date")
+        p.add_argument("-sd", "--start-date", "--start_date")
+        p.add_argument("-ed", "--end-date", "--end_date")
         p.add_argument("--summary", action="store_true", help="顯示文字摘要")
         p.add_argument("-o", "--output", help="儲存至指定 JSON 檔案")
         if has_detailed:
