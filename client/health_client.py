@@ -7,7 +7,7 @@ from models.healthModel import HealthSummary
 
 class HealthClient(Client):
     """
-    Garmin Health Client to fetch daily summaries.
+    Garmin Health Client to fetch daily summaries and specific health metrics.
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -78,3 +78,92 @@ class HealthClient(Client):
                 results.append(data)
             
         return results
+
+    def get_training_readiness(self, calendar_date: Union[str, date]) -> Optional[dict]:
+        """Get Training Readiness for a specific date."""
+        if isinstance(calendar_date, date): date_str = calendar_date.isoformat()
+        else: date_str = calendar_date
+        logger.debug(f"正在獲取訓練完備度: {date_str}")
+        try:
+            return garth.client.connectapi(f"/usersummary-service/usersummary/trainingreadiness/{date_str}")
+        except Exception as e:
+            logger.error(f"獲取訓練完備度失敗: {e}")
+            return None
+
+    def get_fitness_age(self) -> Optional[dict]:
+        """Get Fitness Age report."""
+        logger.debug("正在獲取體能年齡報告...")
+        try:
+            return garth.client.connectapi("/usersummary-service/stats/fitness-age")
+        except Exception as e:
+            logger.error(f"獲取體能年齡失敗: {e}")
+            return None
+
+    def get_lactate_threshold(self) -> Optional[dict]:
+        """Get Lactate Threshold data."""
+        logger.debug("正在獲取乳酸閾值數據...")
+        try:
+            return garth.client.connectapi("/usersummary-service/stats/lactateThreshold")
+        except Exception as e:
+            logger.error(f"獲取乳酸閾值失敗: {e}")
+            return None
+
+    def get_race_predictions(self) -> Optional[dict]:
+        """Get Race Predictions (5k, 10k, Half, Full)."""
+        logger.debug("正在獲取賽事預測...")
+        try:
+            return garth.client.connectapi("/usersummary-service/stats/racePredictions")
+        except Exception as e:
+            logger.error(f"獲取賽事預測失敗: {e}")
+            return None
+
+    def get_intensity_minutes(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[dict]:
+        """Get Intensity Minutes for a date range."""
+        if isinstance(start_date, date): start_date = start_date.isoformat()
+        if isinstance(end_date, date): end_date = end_date.isoformat()
+        logger.debug(f"正在獲取熱血時間: {start_date} ~ {end_date}")
+        try:
+            return garth.client.connectapi(f"/usersummary-service/stats/intensity-minutes/daily/{start_date}/{end_date}")
+        except Exception as e:
+            logger.error(f"獲取熱血時間失敗: {e}")
+            return []
+
+    def get_hydration(self, calendar_date: Union[str, date]) -> Optional[dict]:
+        """Get Hydration data for a specific date."""
+        if isinstance(calendar_date, date): date_str = calendar_date.isoformat()
+        else: date_str = calendar_date
+        logger.debug(f"正在獲取補水紀錄: {date_str}")
+        try:
+            return garth.client.connectapi(f"/usersummary-service/usersummary/hydration/daily/{date_str}")
+        except Exception as e:
+            logger.error(f"獲取補水紀錄失敗: {e}")
+            return None
+
+    def get_personal_records(self) -> List[dict]:
+        """Get All Personal Records."""
+        logger.debug("正在獲取個人紀錄...")
+        try:
+            return garth.client.connectapi("/personalrecord-service/personalrecord/all")
+        except Exception as e:
+            logger.error(f"獲取個人紀錄失敗: {e}")
+            return []
+
+    def get_insights(self) -> Optional[dict]:
+        """Get Garmin Insights."""
+        logger.debug("正在獲取 Garmin Insights...")
+        try:
+            return garth.client.connectapi("/insights-service/insights/summary/")
+        except Exception as e:
+            logger.error(f"獲取 Insights 失敗: {e}")
+            return None
+
+    def get_blood_pressure(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[dict]:
+        """Get Blood Pressure for a date range."""
+        if isinstance(start_date, date): start_date = start_date.isoformat()
+        if isinstance(end_date, date): end_date = end_date.isoformat()
+        logger.debug(f"正在獲取血壓數據: {start_date} ~ {end_date}")
+        try:
+            return garth.client.connectapi(f"/bloodpressure-service/bloodpressure/range/{start_date}/{end_date}")
+        except Exception as e:
+            logger.error(f"獲取血壓數據失敗: {e}")
+            return []

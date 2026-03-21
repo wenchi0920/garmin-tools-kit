@@ -13,4 +13,5 @@ from .race_event_client import RaceEventClient
 
 VERSION = "1.4.1"
 
+
 __all__ = ["Client", "ActivityClient", "WorkoutClient", "WorkoutDSLParser", "HrvClient", "SleepClient", "HealthClient", "BodyBatteryClient", "WeightClient", "Vo2MaxClient", "MaxHrClient", "RaceEventClient", "VERSION"]

@@ -20,17 +20,66 @@
 ---
 
 ## 1. VERSION, 程式說明描述
-- **Version**: v1.4.2
+- **Version**: v1.4.1
 - **程式說明描述**: 
-  這是一個用來與 Garmin Connect Web 溝通並抓取資料的命令列工具包。包含活動資料下載、訓練計畫 (Workout) 管理 (使用特製的 YAML DSL 格式定義與上傳)、每日健康摘要、心率變異度 (HRV)、睡眠紀錄、最大心率指標、VO2 Max 等各項生理與訓練數據的查詢。一切操作皆整合在 `garmin_tools.py` 中，適合進階運動員與想要批量處理資料的使用者。
+  這是一個用來與 Garmin Connect Web 溝通並抓取資料的命令列工具包。包含活動資料下載、訓練計畫 (Workout) 管理、健康數據匯出 (HRV, Sleep, Stress, VO2 Max, Training Readiness 等)。一切操作皆整合在 `garmin_tools.py` 中，適合進階運動員與想要批量處理資料的使用者。
 
 ## 2. 核心功能
 - **整合入口**：一個 `garmin_tools.py` 搞定所有功能，支援子命令模式。
-- **數據導出**：支援將活動導出為 `FIT`, `GPX`, `TCX`, `JSON` 格式，並支援描述命名，甚至可同步原始活動時間到檔案。
-- **訓練自動化 (DSL)**：使用 YAML 定義訓練課表，支援複雜重複結構 (`repeat`)、自訂配速區間 (`@P`)、心率區間 (`@H`) 與全域變數設定 (`definitions`)。
-- **週期排程與管理**：自動刪除 Garmin 上的同名計畫，一次性排入整週課表至行事曆，並支援備份現有課表。
-- **全方位健康追蹤**：包含 HRV、睡眠分數、Body Battery (身體能量趨勢)、體重變化、VO2 Max (最大攝氧量) 及最大心率等生理指標查詢與美化輸出 (`--summary`)。
-- **自動化備份 (Docker)**：容器內建 `cron` 排程，每天 AM 11:00 自動下載最新活動與昨日健康數據至 `data/` 目錄。
+- **數據導出**：支援將活動導出為 `FIT`, `GPX`, `TCX`, `JSON` 格式，並還原檔案時間。
+- **訓練自動化 (DSL)**：使用 YAML 定義訓練課表，支援複雜重複結構與配速區間。
+- **健康數據中心**：整合所有生理指標至 `health` 子命令，支援超過 20 種健康指標抓取與美化輸出。
+- **自動化備份 (Docker)**：容器內建 `cron` 排程，每天 AM 11:00 自動下載資料。
+
+... (中間省略部分一致的內容) ...
+
+### 子命令 (Subcommands)
+1. **`activity`**: 活動匯出。
+2. **`workout`**: 訓練計畫管理。
+3. **`health`**: 健康數據中心。
+   - `summary`: 每日健康摘要 (步數、心率、壓力、能量)。
+   - `sleep`: 睡眠紀錄與分析。
+   - `body-battery`: 身體能量指數趨勢。
+   - `vo2max`: VO2 Max 與訓練狀態。
+   - `hrv`: HRV (心率變異度) 數據。
+   - `weight`: 體重與 BMI 趨勢。
+   - `max-hr`: 最大心率指標。
+   - `stress/heart-rate/steps/calories/spo2/respiration`: 各項細分指標。
+   - `training-readiness/fitness-age/lactate-threshold/race-predictions`: 進階訓練數據。
+   - `intensity-minutes/hydration/personal-records/insights/blood-pressure`: 其他生理紀錄。
+4. **`race-event`**: 賽事清單與行事曆看板。
+
+## 8. 使用範例 (完整)
+
+**Health / 生理指標 (整合於 health 命令下):**
+```bash
+# 美化輸出當日健康摘要
+python garmin_tools.py health summary --summary
+
+# 查詢指定日期的睡眠分數
+python garmin_tools.py health sleep --summary -d 2026-03-08
+
+# 查看 HRV 趨勢與詳細數據
+python garmin_tools.py health hrv --summary --detailed -sd 2026-03-01
+
+# 上傳體重紀錄
+python garmin_tools.py health weight --upload 70.5
+
+# 查看訓練完備度 (Training Readiness)
+python garmin_tools.py health training-readiness --summary
+
+# 查看體能年齡 (Fitness Age)
+python garmin_tools.py health fitness-age --summary
+```
+
+... (更新 Changelog) ...
+## 12. 更新紀錄 (Changelog)
+- **2026-03-21**: **v1.4.1** - 🚀 **重大重構：健康數據子命令整合。**
+    - 將所有生理指標整合至 `health` 父命令下（如 `health sleep`, `health hrv`）。
+    - 新增支援超過 15 種新的健康指標抓取（Stress, Training Readiness, Fitness Age 等）。
+    - 統一健康數據的儲存路徑與輸出格式，並優化 `resolve_default_output_path` 消除冗餘目錄前綴。
+    - 更新整合測試腳本 (`tests/test_integration_all.py`) 以符合新架構。
+    - 更新 `HealthClient` 擴展 API 覆蓋範圍。
 
 ## 3. 跨平台獨立執行檔下載 (免安裝 Python)
 若您不想安裝 Python 環境，可以直接從 [GitHub Releases](../../releases) 下載對應作業系統的編譯版本：

@@ -16,11 +16,12 @@
 
 ### 版本控制
 - `client/__init__.py`: 裡面的 VERSION, 不自動 遞疊 版本號碼 由我 手動控制
+**VERSION**:  不自動 遞疊 版本號碼 由我 手動控制
 
 ### 功能說明
 
 - python3 garmin_tools.py --help
-
+- python3 garmin_tools.py = 表示呼叫 --help
 #### 全域 options 需求
 
   -h, --help            show this help message and exit
@@ -72,7 +73,8 @@ options:
 
 
 
-
+- python3 garmin_tools.py race-event summary => 賽事清單與行事曆看板
+- python3 garmin_tools.py race-event  => 賽事清單與行事曆看板
 
 
 
