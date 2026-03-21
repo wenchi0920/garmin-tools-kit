@@ -13,7 +13,8 @@ Changelog:
 2026-03-12: 1.4.2 - 重構 COMMAND_HANDLERS 結構並修正 Docker 備份排程 (AM 11:00) 以符合 GEMINI.md 規範。
 2026-03-17: 1.4.3 - 修正 fetch_race_calendar 忽略日期範圍 (-sd, -ed) 的 bug 並優化空結果 summary 輸出。
 2026-03-21: 1.4.1 - 重構健康數據子命令結構，將所有健康指標整合進 health 父命令下，並新增細項指標抓取。
-2026-03-21: 1.4.1 - 優化 resolve_default_output_path 以消除檔名中的冗餘目錄前綴，並更新整合測試腳本。
+2026-03-21: 1.4.1 - 優化 resolve_default_output_path 以消除檔名中的冗餘目錄前綴，並更新整合測試腳立。
+2026-03-22: 1.4.1 - 智慧啟動優化：主程式與子命令 (activity, workout, health, race-event) 未帶參數時預設執行 --help。
 """
 import argparse
 import getpass
@@ -605,6 +606,12 @@ def main():
     add_health_sub(health_subparsers, "respiration", "呼吸頻率")
     add_health_sub(health_subparsers, "blood-pressure", "血壓紀錄")
 
+    # 若執行時未帶任何參數，或子命令後面未帶參數，則自動加上 --help 以符合 GEMINI.md 規範
+    if len(sys.argv) == 1:
+        sys.argv.append("--help")
+    elif len(sys.argv) > 1 and sys.argv[-1] in COMMAND_HANDLERS:
+        sys.argv.append("--help")
+
     args = parser.parse_args()
     
     if args.gui:
@@ -616,16 +623,10 @@ def main():
             print("錯誤: 找不到 garmin_gui.py 或其依賴項。請確保已安裝 tkinter。")
             return
 
-    # 預設執行指令: 若無 command 則預設執行 activity -c 5
+    # 若無 command (例如只帶了全域參數但沒子命令)，則預設顯示 help
     if not args.command:
-        args.command = "activity"
-        setattr(args, "count", "5")
-        setattr(args, "start_date", None)
-        setattr(args, "end_date", None)
-        setattr(args, "format", "original")
-        setattr(args, "directory", "data/activity")
-        setattr(args, "originaltime", False)
-        setattr(args, "desc", None)
+        parser.print_help()
+        sys.exit(0)
 
     configure_runtime_logger(args.verbosity, args.progress)
 
