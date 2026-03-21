@@ -58,22 +58,33 @@
 *   `delete <ID>`: 徹底刪除指定計畫。
 
 ### 3.3 健康數據中心 (`health`)
-整合 22 項生理與訓練指標。
+整合 22 項生理與訓練指標。所有指令皆支援 `-d`, `-sd`, `-ed`, `--summary`, `-o` 通用參數。
 
-**通用參數**: `-d` (單日), `-sd`/`-ed` (範圍), `--summary` (文字摘要), `-o` (輸出路徑)。
-
-| 類別 | 子命令 (Sub-commands) | 特殊功能 / 說明 |
-| :--- | :--- | :--- |
-| **基礎監測** | `summary`, `heart-rate`, `steps`, `calories`, `spo2`, `respiration`, `stress` | 支援範圍抓取與文字看板輸出。 |
-| **品質分析** | `sleep`, `hrv`, `body-battery` | `hrv` 可選 `--detailed` 抓取 5 分鐘級別採樣。 |
-| **進度指標** | `vo2max`, `training-status`, `training-readiness`, `fitness-age` | 包含訓練反饋語句與趨勢分析。 |
-| **專項記錄** | `weight`, `hydration`, `blood-pressure` | `weight` 支援 `--upload KG` 快速紀錄。 |
-| **長期統計** | `lactate-threshold`, `race-predictions`, `personal-records`, `insights` | 抓取個人最佳紀錄與系統建議。 |
-
-### 3.4 賽事管理 (`race-event`)
-**通用參數**: `-d` (單日), `-sd`/`-ed` (範圍), `--summary` (文字摘要), `-o` (輸出路徑)。
-*   支援查看特定日期或範圍內的賽事紀錄。
-*   `--summary` 會以時間軸形式美化輸出賽事清單。
+| 子命令 | 名稱 (名稱規則) | 檔案命名規則 (預設) | 功能描述與詳細說明 |
+| :--- | :--- | :--- | :--- |
+| `summary` | 綜合健康摘要 | `health_{日期}.json` | **每日核心指標總覽**。包含步數、卡路里、心率、壓力、SpO2 等綜合數據。 |
+| `sleep` | 睡眠數據 | `sleep_{日期}.json` | **睡眠品質分析**。提供各階段時間(深層/淺層/REM)、睡眠分數及品質反饋。 |
+| `body-battery` | 身體能量指數 | `body-battery_{日期}.json` | **能量趨勢監控**。紀錄充電與消耗值，反映當日身體疲勞與恢復狀況。 |
+| `hrv` | 心率變異度 | `hrv_{日期}.json` | **心率變異度趨勢**。支援 `--detailed` 參數以獲取睡眠期間的高頻採樣。 |
+| `weight` | 體重管理 | `weight_{日期}.json` | **體重與體組成**。支援 `--upload KG` 快速同步體重數據至雲端。 |
+| `vo2max` | VO2 Max | `vo2max_{日期}.json` | **最大攝氧量評估**。追蹤體能發展，包含跑力值與體能年齡估算。 |
+| `training-status` | 訓練狀態 | `training-status_{日期}.json` | **目前訓練負荷分析**。分析訓練量是否足以提升體能(生產、維持、過度訓練等)。 |
+| `max-hr` | 最大心率統計 | `max-hr_{日期}.json` | **心率指標報表**。分析近期活動的最大心率，支援 `--from-file` 優先讀取快取。 |
+| `stress` | 壓力水準 | `stress_{日期}.json` | **全日壓力監控**。紀錄平均壓力與最高壓力值，分析身心放鬆狀況。 |
+| `heart-rate` | 每日心率 | `heart-rate_{日期}.json` | **安靜心率與心率區間**。紀錄靜止心率、最低心率與最高心率分佈。 |
+| `steps` | 步數統計 | `steps_{日期}.json` | **活動量追蹤**。紀錄當日步數、目標達成率與步行距離。 |
+| `calories` | 卡路里消耗 | `calories_{日期}.json` | **能量代謝紀錄**。區分基礎代謝 (BMR) 與活動卡路里消耗。 |
+| `training-readiness` | 訓練完備度 | `training-readiness_{日期}.json` | **運動建議指南**。根據睡眠、恢復時間與壓力給予今日運動強度的建議。 |
+| `fitness-age` | 體能年齡 | `fitness-age_{日期}.json` | **生理年齡分析**。根據 BMI、靜止心率與高強度活動量估算體能年齡。 |
+| `lactate-threshold` | 乳酸閾值 | `lactate-threshold_{日期}.json` | **耐力指標追蹤**。紀錄乳酸閾值心率與配速，用於調整訓練區間。 |
+| `race-predictions` | 賽事預測 | `race-predictions_{日期}.json` | **完賽時間預估**。根據體能估算 5k, 10k, 半馬與全馬的預期完賽時間。 |
+| `intensity-minutes` | 熱血時間 | `intensity-minutes_{日期}.json` | **週活動量統計**。追蹤中高強度活動的分鐘數，符合健康建議。 |
+| `hydration` | 補水紀錄 | `hydration_{日期}.json` | **水分攝取追蹤**。紀錄當日飲水量與預設目標之對比。 |
+| `personal-records` | 個人紀錄 | `personal-records_{日期}.json` | **最佳紀錄存檔**。抓取所有運動項目的個人最佳成績。 |
+| `insights` | Garmin Insights | `insights_{日期}.json` | **同儕數據對比**。提供與同性別/年齡組群的活動數據對比分析。 |
+| `spo2` | 脈搏血氧 | `spo2_{日期}.json` | **血氧飽和度**。監控睡眠或高海拔期間的平均血氧水準。 |
+| `respiration` | 呼吸頻率 | `respiration_{日期}.json` | **每分鐘呼吸次數**。紀錄睡眠與清醒時的平均呼吸頻率 (brpm)。 |
+| `blood-pressure` | 血壓紀錄 | `blood-pressure_{日期}.json` | **血壓健康管理**。紀錄手動輸入或相容設備同步的收縮壓與舒張壓。 |
 
 ---
 
