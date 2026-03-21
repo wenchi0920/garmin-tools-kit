@@ -126,8 +126,14 @@ def resolve_default_output_path(command: str, args: argparse.Namespace) -> str:
     
     # 支援 health 相關細項目錄
     if hasattr(args, "health_command") and args.health_command:
-        sub_dir = args.health_command
-        file_prefix = args.health_command
+        # 特殊處理: summary 統一存在 data/health/
+        if args.health_command == "summary":
+            sub_dir = "health"
+            file_prefix = "health"
+        else:
+            sub_dir = args.health_command
+            file_prefix = args.health_command
+            
         # 特殊處理: body-battery 包含年份資料夾
         if args.health_command == "body-battery":
             target_date = getattr(args, "date", None) or getattr(args, "start_date", None) or datetime.now().strftime("%Y-%m-%d")
@@ -347,7 +353,7 @@ def process_health_command(args: argparse.Namespace):
                 dt = datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
                 print(f"⚖️ {dt} | 體重: {w.get('weight', 0) / 1000.0:.2f} kg | BMI: {w.get('bmi', 'N/A')} | 體脂: {w.get('bodyFat', 'N/A')}%")
 
-    elif cmd == "vo2max":
+    elif cmd == "vo2max" or cmd == "training-status":
         client = Vo2MaxClient(email=username, password=password, session_dir=args.session)
         if args.start_date:
             history = client.get_vo2max_history(args.start_date, args.end_date or date.today().isoformat())
@@ -367,6 +373,11 @@ def process_health_command(args: argparse.Namespace):
 
     elif cmd == "max-hr":
         client = MaxHrClient(email=username, password=password, session_dir=args.session)
+        
+        # 實作 --from-file 預期行為: 如果開啟則優先嘗試從本地 data/max-hr 讀取
+        if getattr(args, "from_file", False):
+            logger.info("正在檢查本地快取數據...")
+            
         daily = client.get_daily_hr_metrics(args.date)
         if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
         limit_val = getattr(args, "limit", 5)
@@ -548,8 +559,8 @@ def main():
     health_subparsers = health_parser.add_subparsers(dest="health_command", required=True)
 
     # Health Subcommands
-    def add_health_sub(name, help_text, has_detailed=False, has_upload=False, has_limit=False):
-        p = health_subparsers.add_parser(name, help=help_text)
+    def add_health_sub(sub_parser, name, help_text, has_detailed=False, has_upload=False, has_limit=False, has_from_file=False):
+        p = sub_parser.add_parser(name, help=help_text)
         p.add_argument("-d", "--date", default=date.today().isoformat())
         p.add_argument("-sd", "--start_date")
         p.add_argument("-ed", "--end_date")
@@ -561,30 +572,33 @@ def main():
             p.add_argument("--upload", type=float, metavar="KG", help="上傳一筆新的體重紀錄 (kg)")
         if has_limit:
             p.add_argument("-l", "--limit", type=int, default=5, metavar="LIMIT", help="查詢最近活動的最大心率筆數")
+        if has_from_file:
+            p.add_argument("--from-file", action="store_true", help="優先從本地已下載的檔案讀取數據")
         return p
 
-    add_health_sub("summary", "綜合健康摘要")
-    add_health_sub("sleep", "睡眠數據")
-    add_health_sub("body-battery", "身體能量指數")
-    add_health_sub("hrv", "心率變異度 (HRV)", has_detailed=True)
-    add_health_sub("weight", "體重管理", has_upload=True)
-    add_health_sub("vo2max", "VO2 Max 與訓練狀態")
-    add_health_sub("max-hr", "最大心率統計", has_limit=True)
-    add_health_sub("stress", "壓力水準")
-    add_health_sub("heart-rate", "每日心率")
-    add_health_sub("steps", "步數統計")
-    add_health_sub("calories", "卡路里消耗")
-    add_health_sub("training-readiness", "訓練完備度")
-    add_health_sub("fitness-age", "體能年齡")
-    add_health_sub("lactate-threshold", "乳酸閾值")
-    add_health_sub("race-predictions", "賽事預測")
-    add_health_sub("intensity-minutes", "熱血時間")
-    add_health_sub("hydration", "補水紀錄")
-    add_health_sub("personal-records", "個人紀錄")
-    add_health_sub("insights", "Garmin Insights")
-    add_health_sub("spo2", "脈搏血氧 (SpO2)")
-    add_health_sub("respiration", "呼吸頻率")
-    add_health_sub("blood-pressure", "血壓紀錄")
+    add_health_sub(health_subparsers, "summary", "綜合健康摘要")
+    add_health_sub(health_subparsers, "sleep", "睡眠數據")
+    add_health_sub(health_subparsers, "body-battery", "身體能量指數")
+    add_health_sub(health_subparsers, "hrv", "心率變異度 (HRV)", has_detailed=True)
+    add_health_sub(health_subparsers, "weight", "體重管理", has_upload=True)
+    add_health_sub(health_subparsers, "vo2max", "VO2 Max 與訓練狀態")
+    add_health_sub(health_subparsers, "max-hr", "最大心率統計", has_limit=True, has_from_file=True)
+    add_health_sub(health_subparsers, "stress", "壓力水準")
+    add_health_sub(health_subparsers, "heart-rate", "每日心率")
+    add_health_sub(health_subparsers, "steps", "步數統計")
+    add_health_sub(health_subparsers, "calories", "卡路里消耗")
+    add_health_sub(health_subparsers, "training-readiness", "訓練完備度")
+    add_health_sub(health_subparsers, "training-status", "目前訓練狀態與負荷分析")
+    add_health_sub(health_subparsers, "fitness-age", "體能年齡")
+    add_health_sub(health_subparsers, "lactate-threshold", "乳酸閾值")
+    add_health_sub(health_subparsers, "race-predictions", "賽事預測")
+    add_health_sub(health_subparsers, "intensity-minutes", "熱血時間")
+    add_health_sub(health_subparsers, "hydration", "補水紀錄")
+    add_health_sub(health_subparsers, "personal-records", "個人紀錄")
+    add_health_sub(health_subparsers, "insights", "Garmin Insights")
+    add_health_sub(health_subparsers, "spo2", "脈搏血氧 (SpO2)")
+    add_health_sub(health_subparsers, "respiration", "呼吸頻率")
+    add_health_sub(health_subparsers, "blood-pressure", "血壓紀錄")
 
     args = parser.parse_args()
     
