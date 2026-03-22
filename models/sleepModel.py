@@ -27,13 +27,13 @@ class SleepNeed(BaseModel):
 class DailySleepDTO(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
     
-    id: int
+    id: Optional[int] = None
     calendarDate: date
-    sleepTimeSeconds: int
-    deepSleepSeconds: int
-    lightSleepSeconds: int
-    remSleepSeconds: int
-    awakeSleepSeconds: int
+    sleepTimeSeconds: Optional[int] = None
+    deepSleepSeconds: Optional[int] = None
+    lightSleepSeconds: Optional[int] = None
+    remSleepSeconds: Optional[int] = None
+    awakeSleepSeconds: Optional[int] = None
     averageRespirationValue: Optional[float] = None
     avgSleepStress: Optional[float] = None
     avgHeartRate: Optional[float] = None

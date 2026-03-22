@@ -17,5 +17,5 @@ class ActivityMaxHr(BaseModel):
     activityId: int
     activityName: str
     startTimeLocal: str
-    maxHr: float
-    averageHr: float
+    maxHr: Optional[float] = None
+    averageHr: Optional[float] = None

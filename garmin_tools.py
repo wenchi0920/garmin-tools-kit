@@ -276,175 +276,182 @@ def process_health_command(args: argparse.Namespace):
     health_client = HealthClient(email=username, password=password, session_dir=args.session)
     
     # 根據子命令分流處理
-    if cmd in ["summary", "stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
-        if args.start_date:
-            data_list = health_client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
-            metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
-        else:
-            data = health_client.get_daily_summary(args.date)
-            metric_collection = {"data": data.model_dump(mode="json")} if data else {}
-        
-        if args.summary and metric_collection.get("data"):
-            items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-            for entry in items:
-                print("-" * 60)
-                print(f"📅 日期: {entry.get('calendarDate')}")
-                if cmd in ["summary", "steps"]:
-                    print(f"🏃 步數: {entry.get('totalSteps', 0)}/{entry.get('dailyStepGoal', 0)} | 距離: {entry.get('totalDistanceMeters', 0) / 1000:.2f}km")
-                if cmd in ["summary", "calories"]:
-                    print(f"🔥 卡路里: 總計 {entry.get('totalKilocalories')} | 基礎 {entry.get('bmrKilocalories')} | 活動 {entry.get('activeKilocalories')}")
-                if cmd in ["summary", "heart-rate"]:
-                    print(f"💓 心率: 靜止 {entry.get('restingHeartRate')} | 最低 {entry.get('minHeartRate')} | 最高 {entry.get('maxHeartRate')}")
-                if cmd in ["summary", "stress"]:
-                    print(f"😫 壓力: 平均 {entry.get('averageStressLevel')} | 最高 {entry.get('maxStressLevel')}")
-                if cmd in ["summary", "spo2", "respiration"]:
-                    print(f"🩸 SpO2: {entry.get('averageSpo2', 'N/A')}% | 🫁 呼吸: {entry.get('avgWakingRespirationValue', 'N/A')} brpm")
-
-    elif cmd == "sleep":
-        client = SleepClient(email=username, password=password, session_dir=args.session)
-        if args.start_date:
-            data_list = client.get_sleep_data_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
-            metric_collection = {"data": [s.model_dump(mode="json") for s in data_list]}
-        else:
-            data = client.get_sleep_data(args.date)
-            metric_collection = {"data": data.model_dump(mode="json")} if data else {}
-        if args.summary and metric_collection.get("data"):
-            items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-            for s in items:
-                dto = s.get("dailySleepDTO", {})
-                score = dto.get("sleepScores", {}).get("overall", {}).get("value", "N/A")
-                print(f"😴 {dto.get('calendarDate')} | 分數: {score} | 總計: {format_seconds(dto.get('sleepTimeSeconds', 0))} | 深層: {format_seconds(dto.get('deepSleepSeconds', 0))}")
-
-    elif cmd == "body-battery":
-        client = BodyBatteryClient(email=username, password=password, session_dir=args.session)
-        if args.start_date:
-            data_list = client.get_body_battery_reports(args.start_date, args.end_date or date.today().isoformat())
-            metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
-        else:
-            data = client.get_body_battery_report(args.date)
-            metric_collection = {"data": data.model_dump(mode="json")} if data else {}
-        if args.summary and metric_collection.get("data"):
-            items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-            for b in items:
-                feedback = b.get('bodyBatteryDynamicFeedbackEvent', {}) or {}
-                print(f"🔋 {b.get('calendarDate')} | 充電: {b.get('charged')} | 消耗: {b.get('drained')} | 評分: {feedback.get('feedbackShortType', 'N/A')}")
-
-    elif cmd == "hrv":
-        client = HrvClient(email=username, password=password, session_dir=args.session)
-        if args.start_date:
-            data_list = client.get_hrv_data_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
-            metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
-        else:
-            data = client.get_hrv_data(args.date)
-            metric_collection = {"data": data.model_dump(mode="json")} if data else {}
-        if not getattr(args, "detailed", False) and metric_collection.get("data"):
-            items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-            for item in items:
-                if "hrvReadings" in item: del item["hrvReadings"]
-
-    elif cmd == "weight":
-        client = WeightClient(email=username, password=password, session_dir=args.session)
-        upload_val = getattr(args, "upload", None)
-        if upload_val:
-            if client.upload_weight(upload_val, args.date):
-                logger.success(f"已上傳 {upload_val} kg 至 {args.date}")
-            return
-        if args.start_date:
-            history = client.get_weight_history(args.start_date, args.end_date or date.today().isoformat())
-            metric_collection = {"data": history.model_dump(mode="json")} if history else {}
-        else:
-            entry = client.get_latest_weight(args.date)
-            metric_collection = {"data": entry.model_dump(mode="json")} if entry else {}
-        if args.summary and metric_collection.get("data"):
-            data = metric_collection["data"]
-            entries = data["dateWeightList"] if "dateWeightList" in data else [data]
-            for w in entries:
-                ts = w.get("timestamp") or w.get("date")
-                dt = datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
-                print(f"⚖️ {dt} | 體重: {w.get('weight', 0) / 1000.0:.2f} kg | BMI: {w.get('bmi', 'N/A')} | 體脂: {w.get('bodyFat', 'N/A')}%")
-
-    elif cmd == "vo2max" or cmd == "training-status":
-        client = Vo2MaxClient(email=username, password=password, session_dir=args.session)
-        if args.start_date:
-            history = client.get_vo2max_history(args.start_date, args.end_date or date.today().isoformat())
-            metric_collection["history"] = [h.model_dump(mode="json") for h in history]
-        status = client.get_training_status(args.date)
-        if status:
-            metric_collection["status"] = status.model_dump(mode="json")
-            metric_collection["status"]["latest_status"] = status.latest_status.model_dump(mode="json") if status.latest_status else None
-        if args.summary:
-            if "status" in metric_collection:
-                latest = metric_collection["status"].get("latest_status", {})
-                print(f"🏆 訓練狀態: {latest.get('trainingStatusFeedbackPhrase', 'N/A')}")
-            if "history" in metric_collection:
-                for h in metric_collection["history"]:
-                    g = h.get("generic", {})
-                    print(f"📈 {g.get('calendarDate')} | VO2 Max: {g.get('vo2MaxValue')} | 體能年齡: {g.get('fitnessAge')}")
-
-    elif cmd == "max-hr":
-        client = MaxHrClient(email=username, password=password, session_dir=args.session)
-        
-        # 實作 --from-file 預期行為: 如果開啟則優先嘗試從本地 data/max-hr 讀取
-        if getattr(args, "from_file", False):
-            logger.info("正在檢查本地快取數據...")
+    try:
+        if cmd in ["summary", "stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
+            if args.start_date:
+                data_list = health_client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
+                if data_list: metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
+            else:
+                data = health_client.get_daily_summary(args.date)
+                if data: metric_collection = {"data": data.model_dump(mode="json")}
             
-        daily = client.get_daily_hr_metrics(args.date)
-        if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
-        limit_val = getattr(args, "limit", 5)
-        recent = client.get_recent_activity_max_hr(limit=limit_val)
-        if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
-        if args.summary:
-            d = metric_collection.get("daily_metrics", {})
-            if d: print(f"💓 {d.get('calendarDate')} | 最大: {d.get('observedMaxHr')} | 安靜: {d.get('restingHr')}")
-            for a in metric_collection.get("recent_activities", []):
-                print(f"🏃 {a.get('startTimeLocal')} | Max: {a.get('maxHr', 0):.0f} | {a.get('activityName')}")
+            if args.summary and metric_collection.get("data"):
+                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
+                for entry in items:
+                    print("-" * 60)
+                    print(f"📅 日期: {entry.get('calendarDate')}")
+                    if cmd in ["summary", "steps"]:
+                        print(f"🏃 步數: {entry.get('totalSteps', 0)}/{entry.get('dailyStepGoal', 0)} | 距離: {entry.get('totalDistanceMeters', 0) / 1000:.2f}km")
+                    if cmd in ["summary", "calories"]:
+                        print(f"🔥 卡路里: 總計 {entry.get('totalKilocalories')} | 基礎 {entry.get('bmrKilocalories')} | 活動 {entry.get('activeKilocalories')}")
+                    if cmd in ["summary", "heart-rate"]:
+                        print(f"💓 心率: 靜止 {entry.get('restingHeartRate')} | 最低 {entry.get('minHeartRate')} | 最高 {entry.get('maxHeartRate')}")
+                    if cmd in ["summary", "stress"]:
+                        print(f"😫 壓力: 平均 {entry.get('averageStressLevel')} | 最高 {entry.get('maxStressLevel')}")
+                    if cmd in ["summary", "spo2", "respiration"]:
+                        print(f"🩸 SpO2: {entry.get('averageSpo2', 'N/A')}% | 🫁 呼吸: {entry.get('avgWakingRespirationValue', 'N/A')} brpm")
 
-    elif cmd == "training-readiness":
-        metric_collection = {"data": health_client.get_training_readiness(args.date)}
-        if args.summary and metric_collection.get("data"):
-            d = metric_collection["data"]
-            print(f"🚦 訓練完備度: {d.get('score')} ({d.get('status')}) | 建議: {d.get('feedback')}")
+        elif cmd == "sleep":
+            client = SleepClient(email=username, password=password, session_dir=args.session)
+            if args.start_date:
+                data_list = client.get_sleep_data_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
+                if data_list: metric_collection = {"data": [s.model_dump(mode="json") for s in data_list]}
+            else:
+                data = client.get_sleep_data(args.date)
+                if data: metric_collection = {"data": data.model_dump(mode="json")}
+            if args.summary and metric_collection.get("data"):
+                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
+                for s in items:
+                    dto = s.get("dailySleepDTO", {})
+                    score = dto.get("sleepScores", {}).get("overall", {}).get("value", "N/A")
+                    print(f"😴 {dto.get('calendarDate')} | 分數: {score} | 總計: {format_seconds(dto.get('sleepTimeSeconds', 0))} | 深層: {format_seconds(dto.get('deepSleepSeconds', 0))}")
 
-    elif cmd == "fitness-age":
-        metric_collection = {"data": health_client.get_fitness_age()}
-        if args.summary and metric_collection.get("data"):
-            d = metric_collection["data"]
-            print(f"👶 體能年齡: {d.get('fitnessAge')} | 實際年齡: {d.get('actualAge')}")
+        elif cmd == "body-battery":
+            client = BodyBatteryClient(email=username, password=password, session_dir=args.session)
+            if args.start_date:
+                data_list = client.get_body_battery_reports(args.start_date, args.end_date or date.today().isoformat())
+                if data_list: metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
+            else:
+                data = client.get_body_battery_report(args.date)
+                if data: metric_collection = {"data": data.model_dump(mode="json")}
+            if args.summary and metric_collection.get("data"):
+                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
+                for b in items:
+                    feedback = b.get('bodyBatteryDynamicFeedbackEvent', {}) or {}
+                    print(f"🔋 {b.get('calendarDate')} | 充電: {b.get('charged')} | 消耗: {b.get('drained')} | 評分: {feedback.get('feedbackShortType', 'N/A')}")
 
-    elif cmd == "lactate-threshold":
-        metric_collection = {"data": health_client.get_lactate_threshold()}
+        elif cmd == "hrv":
+            client = HrvClient(email=username, password=password, session_dir=args.session)
+            if args.start_date:
+                data_list = client.get_hrv_data_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
+                if data_list: metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
+            else:
+                data = client.get_hrv_data(args.date)
+                if data: metric_collection = {"data": data.model_dump(mode="json")}
+            if not getattr(args, "detailed", False) and metric_collection.get("data"):
+                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
+                for item in items:
+                    if "hrvReadings" in item: del item["hrvReadings"]
 
-    elif cmd == "race-predictions":
-        metric_collection = {"data": health_client.get_race_predictions()}
+        elif cmd == "weight":
+            client = WeightClient(email=username, password=password, session_dir=args.session)
+            upload_val = getattr(args, "upload", None)
+            if upload_val:
+                if client.upload_weight(upload_val, args.date):
+                    logger.success(f"已上傳 {upload_val} kg 至 {args.date}")
+                return
+            if args.start_date:
+                history = client.get_weight_history(args.start_date, args.end_date or date.today().isoformat())
+                if history: metric_collection = {"data": history.model_dump(mode="json")}
+            else:
+                entry = client.get_latest_weight(args.date)
+                if entry: metric_collection = {"data": entry.model_dump(mode="json")}
+            if args.summary and metric_collection.get("data"):
+                data = metric_collection["data"]
+                entries = data["dateWeightList"] if "dateWeightList" in data else [data]
+                for w in entries:
+                    ts = w.get("timestamp") or w.get("date")
+                    dt = datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
+                    print(f"⚖️ {dt} | 體重: {w.get('weight', 0) / 1000.0:.2f} kg | BMI: {w.get('bmi', 'N/A')} | 體脂: {w.get('bodyFat', 'N/A')}%")
 
-    elif cmd == "intensity-minutes":
-        metric_collection = {"data": health_client.get_intensity_minutes(args.start_date or args.date, args.end_date or args.date)}
+        elif cmd == "vo2max" or cmd == "training-status":
+            client = Vo2MaxClient(email=username, password=password, session_dir=args.session)
+            if args.start_date:
+                history = client.get_vo2max_history(args.start_date, args.end_date or date.today().isoformat())
+                if history: metric_collection["history"] = [h.model_dump(mode="json") for h in history]
+            status = client.get_training_status(args.date)
+            if status:
+                metric_collection["status"] = status.model_dump(mode="json")
+                metric_collection["status"]["latest_status"] = status.latest_status.model_dump(mode="json") if status.latest_status else None
+            if args.summary:
+                if "status" in metric_collection:
+                    latest = metric_collection["status"].get("latest_status", {})
+                    print(f"🏆 訓練狀態: {latest.get('trainingStatusFeedbackPhrase', 'N/A')}")
+                if "history" in metric_collection:
+                    for h in metric_collection["history"]:
+                        g = h.get("generic", {})
+                        print(f"📈 {g.get('calendarDate')} | VO2 Max: {g.get('vo2MaxValue')} | 體能年齡: {g.get('fitnessAge')}")
 
-    elif cmd == "hydration":
-        metric_collection = {"data": health_client.get_hydration(args.date)}
+        elif cmd == "max-hr":
+            client = MaxHrClient(email=username, password=password, session_dir=args.session)
+            if getattr(args, "from_file", False): logger.info("正在檢查本地快取數據...")
+            daily = client.get_daily_hr_metrics(args.date)
+            if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
+            limit_val = getattr(args, "limit", 5)
+            recent = client.get_recent_activity_max_hr(limit=limit_val)
+            if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
+            if args.summary:
+                d = metric_collection.get("daily_metrics", {})
+                if d: print(f"💓 {d.get('calendarDate')} | 最大: {d.get('observedMaxHr')} | 安靜: {d.get('restingHr')}")
+                for a in metric_collection.get("recent_activities", []):
+                    print(f"🏃 {a.get('startTimeLocal')} | Max: {a.get('maxHr', 0):.0f} | {a.get('activityName')}")
 
-    elif cmd == "personal-records":
-        metric_collection = {"data": health_client.get_personal_records()}
+        elif cmd == "training-readiness":
+            data = health_client.get_training_readiness(args.date)
+            if data: metric_collection = {"data": data}
+            if args.summary and metric_collection.get("data"):
+                d = metric_collection["data"]
+                print(f"🚦 訓練完備度: {d.get('score')} ({d.get('status')}) | 建議: {d.get('feedback')}")
 
-    elif cmd == "insights":
-        metric_collection = {"data": health_client.get_insights()}
+        elif cmd == "fitness-age":
+            data = health_client.get_fitness_age()
+            if data: metric_collection = {"data": data}
+            if args.summary and metric_collection.get("data"):
+                d = metric_collection["data"]
+                print(f"👶 體能年齡: {d.get('fitnessAge')} | 實際年齡: {d.get('actualAge')}")
 
-    elif cmd == "spo2":
-        if not metric_collection:
+        elif cmd == "lactate-threshold":
+            data = health_client.get_lactate_threshold()
+            if data: metric_collection = {"data": data}
+
+        elif cmd == "race-predictions":
+            data = health_client.get_race_predictions()
+            if data: metric_collection = {"data": data}
+
+        elif cmd == "intensity-minutes":
+            data = health_client.get_intensity_minutes(args.start_date or args.date, args.end_date or args.date)
+            if data: metric_collection = {"data": data}
+
+        elif cmd == "hydration":
+            data = health_client.get_hydration(args.date)
+            if data: metric_collection = {"data": data}
+
+        elif cmd == "personal-records":
+            data = health_client.get_personal_records()
+            if data: metric_collection = {"data": data}
+
+        elif cmd == "insights":
+            data = health_client.get_insights()
+            if data: metric_collection = {"data": data}
+
+        elif cmd == "spo2":
             data = health_client.get_daily_summary(args.date)
-            metric_collection = {"data": data.model_dump(mode="json")} if data else {}
-        if args.summary and metric_collection.get("data"):
-             print(f"🩸 SpO2: {metric_collection['data'].get('averageSpo2', 'N/A')}%")
+            if data: metric_collection = {"data": data.model_dump(mode="json")}
+            if args.summary and metric_collection.get("data"):
+                 print(f"🩸 SpO2: {metric_collection['data'].get('averageSpo2', 'N/A')}%")
 
-    elif cmd == "respiration":
-        if not metric_collection:
+        elif cmd == "respiration":
             data = health_client.get_daily_summary(args.date)
-            metric_collection = {"data": data.model_dump(mode="json")} if data else {}
-        if args.summary and metric_collection.get("data"):
-             print(f"🫁 呼吸: {metric_collection['data'].get('avgWakingRespirationValue', 'N/A')} brpm")
+            if data: metric_collection = {"data": data.model_dump(mode="json")}
+            if args.summary and metric_collection.get("data"):
+                 print(f"🫁 呼吸: {metric_collection['data'].get('avgWakingRespirationValue', 'N/A')} brpm")
 
-    elif cmd == "blood-pressure":
-        metric_collection = {"data": health_client.get_blood_pressure(args.start_date or args.date, args.end_date or date.today().isoformat())}
+        elif cmd == "blood-pressure":
+            data = health_client.get_blood_pressure(args.start_date or args.date, args.end_date or date.today().isoformat())
+            if data: metric_collection = {"data": data}
+    except Exception as e:
+        logger.error(f"執行健康數據子命令 '{cmd}' 失敗: {e}")
+        return
 
     # 處理輸出
     output_path = args.output
@@ -452,6 +459,11 @@ def process_health_command(args: argparse.Namespace):
         output_path = resolve_default_output_path("health", args)
 
     if output_path:
+        # 僅在有獲取到實際數據時才儲存，避免覆蓋有效舊檔
+        if not metric_collection or (isinstance(metric_collection.get("data"), list) and not metric_collection["data"]):
+            logger.warning(f"跳過儲存: 無有效數據可供儲存 ({cmd})")
+            return
+
         if not args.over_write and os.path.exists(output_path):
             logger.info(f"檔案已存在，跳過儲存: {output_path}")
         else:

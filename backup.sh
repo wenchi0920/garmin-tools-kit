@@ -7,12 +7,27 @@
 # 2026-03-20: v1.3.0 - 實作分時備份 (FIT: 08,11,18,23; 其他: 08) 並下載當天與前天資料
 # 2026-03-20: v1.3.1 - 修正備份時段 (FIT: 08,13,18,23; 其他: 08) 並維持雙日資料下載
 # 2026-03-22: v1.4.1 - 增加 -d 參數支援強制全量備份任務，優化 METRICS 循環邏輯
+# 2026-03-22: v1.5.0 - 實作 Daily Logging 功能，日誌按日存放於 logs/ 目錄
 
 set -euo pipefail
 
 # 切換到腳本所在目錄
 SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
 cd "${SCRIPT_DIR}"
+
+# 定義日期與小時
+YESTERDAY=$(date -d "yesterday" '+%Y-%m-%d')
+TODAY=$(date '+%Y-%m-%d')
+HOUR=$(date '+%H')
+
+# --- 日誌配置 (Logging) ---
+LOG_DIR="${SCRIPT_DIR}/logs"
+LOG_FILE="${LOG_DIR}/backup_${TODAY}.log"
+mkdir -p "${LOG_DIR}"
+
+# 將所有輸出重新導向至日誌檔案與終端機 (tee)
+# 注意: exec 使用 >(tee ...) 是 Bash 特性，需確保 shebang 為 /bin/bash
+exec > >(tee -a "${LOG_FILE}") 2>&1
 
 # 解析參數
 FORCE_ALL=false
@@ -23,16 +38,13 @@ while getopts "d" opt; do
   esac
 done
 
-# 定義日期與小時
-YESTERDAY=$(date -d "yesterday" '+%Y-%m-%d')
-TODAY=$(date '+%Y-%m-%d')
-HOUR=$(date '+%H')
-
+echo "================================================================================"
 if [ "$FORCE_ALL" = true ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️ 偵測到強制執行參數 (-d)，將忽略小時檢查並執行全量備份..."
 fi
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 啟動備份任務 (Hour: ${HOUR})..."
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 啟動備份任務 (Hour: ${HOUR}, Log: ${LOG_FILE})"
+echo "================================================================================"
 
 # 確保基礎數據目錄存在
 mkdir -p "${SCRIPT_DIR}/data"
@@ -82,4 +94,5 @@ if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" ]]; then
     python3 garmin_tools.py -v race-event --start_date "${YESTERDAY}" --end_date "${TODAY}"
 fi
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✅ 備份任務完成。"
+echo -e "\n[$(date '+%Y-%m-%d %H:%M:%S')] ✅ 備份任務完成。"
+echo "================================================================================"
