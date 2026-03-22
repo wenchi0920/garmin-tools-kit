@@ -6,7 +6,7 @@
 # 2026-03-17: v1.2.0 - 升級為全量備份 (包含 HRV, Sleep, Body Battery, VO2Max, Weight, Race-Event, Max-HR)
 # 2026-03-20: v1.3.0 - 實作分時備份 (FIT: 08,11,18,23; 其他: 08) 並下載當天與前天資料
 # 2026-03-20: v1.3.1 - 修正備份時段 (FIT: 08,13,18,23; 其他: 08) 並維持雙日資料下載
-# 2026-03-22: v1.4.0 - 依照 garmin_tools.md 補齊所有健康指標 (23項)，確保每日抓取雙日資料
+# 2026-03-22: v1.4.1 - 增加 -d 參數支援強制全量備份任務，優化 METRICS 循環邏輯
 
 set -euo pipefail
 
@@ -14,24 +14,37 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
 cd "${SCRIPT_DIR}"
 
+# 解析參數
+FORCE_ALL=false
+while getopts "d" opt; do
+  case $opt in
+    d) FORCE_ALL=true ;;
+    *) echo "用法: $0 [-d (強制全量備份)]"; exit 1 ;;
+  esac
+done
+
 # 定義日期與小時
 YESTERDAY=$(date -d "yesterday" '+%Y-%m-%d')
 TODAY=$(date '+%Y-%m-%d')
 HOUR=$(date '+%H')
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 執行全量備份任務 (Hour: ${HOUR})..."
+if [ "$FORCE_ALL" = true ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⚠️ 偵測到強制執行參數 (-d)，將忽略小時檢查並執行全量備份..."
+fi
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] 🚀 啟動備份任務 (Hour: ${HOUR})..."
 
 # 確保基礎數據目錄存在
 mkdir -p "${SCRIPT_DIR}/data"
 
-# 1. 活動數據 (FIT): 於 08, 13, 18, 23 時執行，抓取當天與前天
-if [[ "$HOUR" == "08" || "$HOUR" == "13" || "$HOUR" == "18" || "$HOUR" == "23" ]]; then
+# 1. 活動數據 (FIT): 於 08, 13, 18, 23 時執行，或強制執行時觸發
+if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" || "$HOUR" == "13" || "$HOUR" == "18" || "$HOUR" == "23" ]]; then
     echo "📦 [FIT] 備份活動數據 (自 ${YESTERDAY} 至 ${TODAY})..."
     python3 garmin_tools.py -v activity --start_date "${YESTERDAY}" --end_date "${TODAY}" --format original --originaltime
 fi
 
-# 2. 其餘生理數據: 僅於 08 時執行全量備份，抓取當天與前天
-if [[ "$HOUR" == "08" ]]; then
+# 2. 其餘生理數據: 僅於 08 時執行全量備份，或強制執行時觸發
+if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" ]]; then
     echo "❤️ [HEALTH] 執行全量生理健康數據備份 (${YESTERDAY} & ${TODAY})..."
     
     # 定義需要抓取雙日資料的指標 (Daily Metrics)
