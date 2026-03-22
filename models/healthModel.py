@@ -42,5 +42,8 @@ class HealthSummary(BaseModel):
     averageSpo2: Optional[float] = None
     lowestSpo2: Optional[int] = None
     avgWakingRespirationValue: Optional[float] = None
+    # Intensity Minutes
+    intensityMinutesGoal: Optional[int] = None
+    activeIntensityMinutes: Optional[int] = None
     # Events
     bodyBatteryActivityEventList: Optional[List[BodyBatteryEvent]] = None

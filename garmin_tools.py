@@ -15,6 +15,7 @@ Changelog:
 2026-03-21: 1.4.1 - 重構健康數據子命令結構，將所有健康指標整合進 health 父命令下，並新增細項指標抓取。
 2026-03-21: 1.4.1 - 優化 resolve_default_output_path 以消除檔名中的冗餘目錄前綴，並更新整合測試腳本。
 2026-03-22: 1.4.1 - 智慧啟動優化：主程式與子命令 (activity, workout, health, race-event) 未帶參數時預設執行 --help。
+2026-03-22: 1.4.3 - 版本手動更新，優化健康數據異常攔截、寫檔判定邏輯與 Pydantic 模型容錯。
 """
 import argparse
 import getpass
@@ -36,7 +37,7 @@ from client import (
 )
 from models.raceEventModel import RaceEventModel
 
-VERSION = "1.4.1"
+VERSION = "1.4.3"
 
 
 # ==============================================================================
