@@ -77,30 +77,30 @@ if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" ]]; then
         echo "   -> 正在備份: ${metric}..."
         # HRV 需額外帶 --detailed
         if [[ "$metric" == "hrv" ]]; then
-            run_cmd python3 garmin_tools.py -v health "${metric}" --date "${YESTERDAY}" --detailed
-            run_cmd python3 garmin_tools.py -v health "${metric}" --date "${TODAY}" --detailed
+            run_cmd python3 garmin_tools.py -v --over-write health "${metric}" --date "${YESTERDAY}" --detailed
+            run_cmd python3 garmin_tools.py -v --over-write health "${metric}" --date "${TODAY}" --detailed
         else
-            run_cmd python3 garmin_tools.py -v health "${metric}" --date "${YESTERDAY}"
-            run_cmd python3 garmin_tools.py -v health "${metric}" --date "${TODAY}"
+            run_cmd python3 garmin_tools.py -v --over-write health "${metric}" --date "${YESTERDAY}"
+            run_cmd python3 garmin_tools.py -v --over-write health "${metric}" --date "${TODAY}"
         fi
     done
 
     # 定義範圍或單次執行的指標 (Range or Periodic Metrics)
     echo "   -> 正在更新週期性指標..."
-    run_cmd python3 garmin_tools.py -v health fitness-age
-    run_cmd python3 garmin_tools.py -v health lactate-threshold
-    run_cmd python3 garmin_tools.py -v health race-predictions
-    run_cmd python3 garmin_tools.py -v health personal-records
-    run_cmd python3 garmin_tools.py -v health insights
-    run_cmd python3 garmin_tools.py -v health max-hr --limit 5
+    run_cmd python3 garmin_tools.py -v --over-write health fitness-age
+    run_cmd python3 garmin_tools.py -v --over-write health lactate-threshold
+    run_cmd python3 garmin_tools.py -v --over-write health race-predictions
+    run_cmd python3 garmin_tools.py -v --over-write health personal-records
+    run_cmd python3 garmin_tools.py -v --over-write health insights
+    run_cmd python3 garmin_tools.py -v --over-write health max-hr --limit 5
     
     # 範圍指標
-    run_cmd python3 garmin_tools.py -v health intensity-minutes --start_date "${YESTERDAY}" --end_date "${TODAY}"
-    run_cmd python3 garmin_tools.py -v health blood-pressure --start_date "${YESTERDAY}" --end_date "${TODAY}"
+    run_cmd python3 garmin_tools.py -v --over-write health intensity-minutes --start_date "${YESTERDAY}" --end_date "${TODAY}"
+    run_cmd python3 garmin_tools.py -v --over-write health blood-pressure --start_date "${YESTERDAY}" --end_date "${TODAY}"
     
     # 賽事數據
     echo "   -> 正在更新賽事行事曆..."
-    run_cmd python3 garmin_tools.py -v race-event --start_date "${YESTERDAY}" --end_date "${TODAY}"
+    run_cmd python3 garmin_tools.py -v --over-write race-event --start_date "${YESTERDAY}" --end_date "${TODAY}"
 fi
 
 echo -e "\n[$(date '+%Y-%m-%d %H:%M:%S')] ✅ 備份任務完成。"

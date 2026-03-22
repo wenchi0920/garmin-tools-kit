@@ -267,6 +267,88 @@ def manage_workout_workflow(args: argparse.Namespace):
         logger.success(f"計畫已刪除! ID: {args.id}")
 
 
+def display_health_summary(cmd: str, metric_collection: Dict[str, Any]):
+    """格式化顯示健康數據摘要 (Helper for console output)"""
+    if not metric_collection or (not metric_collection.get("data") and not metric_collection.get("status") and not metric_collection.get("daily_metrics") and not metric_collection.get("history")):
+        return
+
+    items = metric_collection.get("data", [])
+    if not isinstance(items, list):
+        items = [items]
+
+    if cmd in ["summary", "stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
+        for entry in items:
+            if not isinstance(entry, dict): continue
+            print("-" * 60)
+            print(f"📅 日期: {entry.get('calendarDate')}")
+            if cmd in ["summary", "steps"]:
+                print(f"🏃 步數: {entry.get('totalSteps', 0)}/{entry.get('dailyStepGoal', 0)} | 距離: {entry.get('totalDistanceMeters', 0) / 1000:.2f}km")
+            if cmd in ["summary", "calories"]:
+                print(f"🔥 卡路里: 總計 {entry.get('totalKilocalories')} | 基礎 {entry.get('bmrKilocalories')} | 活動 {entry.get('activeKilocalories')}")
+            if cmd in ["summary", "heart-rate"]:
+                print(f"💓 心率: 靜止 {entry.get('restingHeartRate')} | 最低 {entry.get('minHeartRate')} | 最高 {entry.get('maxHeartRate')}")
+            if cmd in ["summary", "stress"]:
+                print(f"😫 壓力: 平均 {entry.get('averageStressLevel')} | 最高 {entry.get('maxStressLevel')}")
+            if cmd in ["summary", "spo2", "respiration"]:
+                print(f"🩸 SpO2: {entry.get('averageSpo2', 'N/A')}% | 🫁 呼吸: {entry.get('avgWakingRespirationValue', 'N/A')} brpm")
+
+    elif cmd == "sleep":
+        for s in items:
+            if not isinstance(s, dict): continue
+            dto = s.get("dailySleepDTO", {})
+            score = dto.get("sleepScores", {}).get("overall", {}).get("value", "N/A")
+            print(f"😴 {dto.get('calendarDate')} | 分數: {score} | 總計: {format_seconds(dto.get('sleepTimeSeconds', 0))} | 深層: {format_seconds(dto.get('deepSleepSeconds', 0))}")
+
+    elif cmd == "body-battery":
+        for b in items:
+            if not isinstance(b, dict): continue
+            feedback = b.get('bodyBatteryDynamicFeedbackEvent', {}) or {}
+            print(f"🔋 {b.get('calendarDate')} | 充電: {b.get('charged')} | 消耗: {b.get('drained')} | 評分: {feedback.get('feedbackShortType', 'N/A')}")
+
+    elif cmd == "hrv":
+        for item in items:
+            if not isinstance(item, dict): continue
+            status = item.get("dailyHrvFeedback", "N/A")
+            print(f"💓 {item.get('calendarDate')} | HRV 狀態: {status} | 7日平均: {item.get('lastNightAvg', 'N/A')} ms")
+
+    elif cmd == "weight":
+        data = metric_collection.get("data", {})
+        entries = data.get("dateWeightList", []) if isinstance(data, dict) and "dateWeightList" in data else items
+        for w in entries:
+            if not isinstance(w, dict): continue
+            ts = w.get("timestamp") or w.get("date")
+            if not ts: continue
+            dt = datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
+            print(f"⚖️ {dt} | 體重: {w.get('weight', 0) / 1000.0:.2f} kg | BMI: {w.get('bmi', 'N/A')} | 體脂: {w.get('bodyFat', 'N/A')}%")
+
+    elif cmd == "vo2max" or cmd == "training-status":
+        if "status" in metric_collection:
+            latest = metric_collection["status"].get("latest_status", {})
+            if latest: print(f"🏆 訓練狀態: {latest.get('trainingStatusFeedbackPhrase', 'N/A')}")
+        if "history" in metric_collection:
+            for h in metric_collection["history"]:
+                if not isinstance(h, dict): continue
+                g = h.get("generic", {})
+                print(f"📈 {g.get('calendarDate')} | VO2 Max: {g.get('vo2MaxValue')} | 體能年齡: {g.get('fitnessAge')}")
+
+    elif cmd == "max-hr":
+        d = metric_collection.get("daily_metrics", {})
+        if d: print(f"💓 {d.get('calendarDate')} | 最大: {d.get('observedMaxHr')} | 安靜: {d.get('restingHr')}")
+        for a in metric_collection.get("recent_activities", []):
+            if not isinstance(a, dict): continue
+            print(f"🏃 {a.get('startTimeLocal')} | Max: {a.get('maxHr', 0):.0f} | {a.get('activityName')}")
+
+    elif cmd == "training-readiness":
+        for d in items:
+            if not isinstance(d, dict): continue
+            print(f"🚦 訓練完備度: {d.get('score')} ({d.get('status')}) | 建議: {d.get('feedback')}")
+
+    elif cmd == "fitness-age":
+        for d in items:
+            if not isinstance(d, dict): continue
+            print(f"👶 體能年齡: {d.get('fitnessAge')} | 實際年齡: {d.get('actualAge')}")
+
+
 def process_health_command(args: argparse.Namespace):
     """整合處理所有健康指標相關邏輯"""
     username, password = resolve_user_auth(args)
@@ -373,43 +455,24 @@ def process_health_command(args: argparse.Namespace):
             status = client.get_training_status(args.date)
             if status:
                 metric_collection["status"] = status.model_dump(mode="json")
-                metric_collection["status"]["latest_status"] = status.latest_status.model_dump(mode="json") if status.latest_status else None
-            if args.summary:
-                if "status" in metric_collection:
-                    latest = metric_collection["status"].get("latest_status", {})
-                    print(f"🏆 訓練狀態: {latest.get('trainingStatusFeedbackPhrase', 'N/A')}")
-                if "history" in metric_collection:
-                    for h in metric_collection["history"]:
-                        g = h.get("generic", {})
-                        print(f"📈 {g.get('calendarDate')} | VO2 Max: {g.get('vo2MaxValue')} | 體能年齡: {g.get('fitnessAge')}")
+                if status.latest_status:
+                    metric_collection["status"]["latest_status"] = status.latest_status.model_dump(mode="json")
 
         elif cmd == "max-hr":
             client = MaxHrClient(email=username, password=password, session_dir=args.session)
-            if getattr(args, "from_file", False): logger.info("正在檢查本地快取數據...")
             daily = client.get_daily_hr_metrics(args.date)
             if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
             limit_val = getattr(args, "limit", 5)
             recent = client.get_recent_activity_max_hr(limit=limit_val)
             if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
-            if args.summary:
-                d = metric_collection.get("daily_metrics", {})
-                if d: print(f"💓 {d.get('calendarDate')} | 最大: {d.get('observedMaxHr')} | 安靜: {d.get('restingHr')}")
-                for a in metric_collection.get("recent_activities", []):
-                    print(f"🏃 {a.get('startTimeLocal')} | Max: {a.get('maxHr', 0):.0f} | {a.get('activityName')}")
 
         elif cmd == "training-readiness":
             data = health_client.get_training_readiness(args.date)
             if data: metric_collection = {"data": data}
-            if args.summary and metric_collection.get("data"):
-                d = metric_collection["data"]
-                print(f"🚦 訓練完備度: {d.get('score')} ({d.get('status')}) | 建議: {d.get('feedback')}")
 
         elif cmd == "fitness-age":
             data = health_client.get_fitness_age()
             if data: metric_collection = {"data": data}
-            if args.summary and metric_collection.get("data"):
-                d = metric_collection["data"]
-                print(f"👶 體能年齡: {d.get('fitnessAge')} | 實際年齡: {d.get('actualAge')}")
 
         elif cmd == "lactate-threshold":
             data = health_client.get_lactate_threshold()
@@ -420,7 +483,7 @@ def process_health_command(args: argparse.Namespace):
             if data: metric_collection = {"data": data}
 
         elif cmd == "intensity-minutes":
-            data = health_client.get_intensity_minutes(args.start_date or args.date, args.end_date or args.date)
+            data = health_client.get_intensity_minutes(args.start_date or args.date, args.end_date or date.today().isoformat())
             if data: metric_collection = {"data": data}
 
         elif cmd == "hydration":
@@ -438,18 +501,19 @@ def process_health_command(args: argparse.Namespace):
         elif cmd == "spo2":
             data = health_client.get_daily_summary(args.date)
             if data: metric_collection = {"data": data.model_dump(mode="json")}
-            if args.summary and metric_collection.get("data"):
-                 print(f"🩸 SpO2: {metric_collection['data'].get('averageSpo2', 'N/A')}%")
 
         elif cmd == "respiration":
             data = health_client.get_daily_summary(args.date)
             if data: metric_collection = {"data": data.model_dump(mode="json")}
-            if args.summary and metric_collection.get("data"):
-                 print(f"🫁 呼吸: {metric_collection['data'].get('avgWakingRespirationValue', 'N/A')} brpm")
 
         elif cmd == "blood-pressure":
             data = health_client.get_blood_pressure(args.start_date or args.date, args.end_date or date.today().isoformat())
             if data: metric_collection = {"data": data}
+
+        # 顯示摘要 (重用顯示邏輯)
+        if args.summary:
+            display_health_summary(cmd, metric_collection)
+
     except Exception as e:
         logger.error(f"執行健康數據子命令 '{cmd}' 失敗: {e}")
         return
@@ -461,8 +525,8 @@ def process_health_command(args: argparse.Namespace):
 
     if output_path:
         # 僅在有獲取到實際數據時才儲存，避免覆蓋有效舊檔
-        if not metric_collection or (isinstance(metric_collection.get("data"), list) and not metric_collection["data"]):
-            logger.warning(f"跳過儲存: 無有效數據可供儲存 ({cmd})")
+        if not metric_collection or (not metric_collection.get("data") and not metric_collection.get("status") and not metric_collection.get("daily_metrics")):
+            logger.warning(f"跳過儲存: 無有效數據 ({cmd})")
             return
 
         if not args.over_write and os.path.exists(output_path):
@@ -520,6 +584,67 @@ def fetch_race_calendar(args: argparse.Namespace):
         print(json.dumps([e.model_dump(mode="json", by_alias=True) for e in validated], indent=4, ensure_ascii=False))
 
 
+def execute_combined_summary(args: argparse.Namespace):
+    """彙整指定日期所有健康數據摘要，優先使用檔案資料，不存檔 (符合 garmin_tools.md 規範)"""
+    target_date = args.date or date.today().isoformat()
+    logger.info(f"正在彙整全方位健康數據摘要 ({target_date})...")
+    print("\n" + "=" * 60)
+    print(f"🚀 Garmin Connect 數據彙整: {target_date}")
+    print("=" * 60)
+    
+    # 定義要顯示的所有核心指標
+    sub_cmds = [
+        "summary", "sleep", "body-battery", "hrv", "training-readiness", 
+        "training-status", "vo2max", "weight", "max-hr", "fitness-age"
+    ]
+
+    class MockArgs(argparse.Namespace):
+        def __init__(self, **entries):
+            self.__dict__.update(entries)
+            self.verbosity = getattr(args, "verbosity", 0)
+
+    for cmd in sub_cmds:
+        # 推算路徑
+        if cmd == "summary":
+            target_file = f"data/health/health_{target_date}.json"
+        elif cmd == "body-battery":
+            target_file = f"data/body-battery_{target_date[:4]}/body-battery_{target_date}.json"
+        else:
+            target_file = f"data/{cmd}/{cmd}_{target_date}.json"
+
+        if os.path.exists(target_file):
+            logger.debug(f"載入本地快取: {target_file}")
+            try:
+                with open(target_file, "r", encoding="utf-8") as f:
+                    metric_collection = json.load(f)
+                    display_health_summary(cmd, metric_collection)
+            except Exception as e:
+                logger.warning(f"讀取快取檔案失敗 {target_file}: {e}")
+        else:
+            # 無檔案，執行下載並顯示 (但不設定 output，故不會儲存新的 combined file)
+            # 注意：process_health_command 內部的 download 可能會存檔到個別目錄，
+            # 但 execute_combined_summary 本身不會儲存一份彙整過的 JSON。
+            mock_args = MockArgs(
+                health_command=cmd,
+                date=target_date,
+                summary=True,
+                output=None,
+                session=args.session,
+                username=args.username,
+                password=args.password,
+                env_file=args.env_file,
+                over_write=args.over_write,
+                progress=args.progress,
+                start_date=None,
+                end_date=None,
+                detailed=False
+            )
+            process_health_command(mock_args)
+    
+    print("\n" + "=" * 60)
+    logger.success("摘要彙整完成。")
+
+
 # ==============================================================================
 # 全域常數與對應處理函式 (Constants & Command Handlers)
 # ==============================================================================
@@ -528,7 +653,8 @@ COMMAND_HANDLERS = {
     "activity": execute_activity_export,
     "workout": manage_workout_workflow,
     "health": process_health_command,
-    "race-event": fetch_race_calendar
+    "race-event": fetch_race_calendar,
+    "summary": execute_combined_summary
 }
 
 
@@ -555,8 +681,10 @@ def main():
     activity_parser.add_argument("-ed", "--end-date", "--end_date")
     activity_parser.add_argument("-f", "--format", choices=["gpx", "tcx", "original", "json"], default="original")
     activity_parser.add_argument("--directory", default="data/activity")
-    activity_parser.add_argument("-ot", "--originaltime", action="store_true", default=True, help="修正檔案時間 (預設啟用)")
-    activity_parser.add_argument("--desc", nargs="?", const=True)
+    activity_parser.add_argument("-ot", "--originaltime", action="store_true", help="修正檔案時間 (預設啟用)")
+    activity_parser.add_argument("--no-ot", action="store_false", dest="originaltime", help="停用修正檔案時間")
+    activity_parser.set_defaults(originaltime=True)
+    activity_parser.add_argument("--desc", nargs="?", const=True, help="檔名加入活動描述，可指定長度 [N]")
 
     # Workout
     workout_parser = subparsers.add_parser("workout", help="訓練計畫管理")
@@ -577,6 +705,10 @@ def main():
     race_parser.add_argument("-ed", "--end-date", "--end_date")
     race_parser.add_argument("--summary", action="store_true")
     race_parser.add_argument("-o", "--output")
+
+    # Summary (Standalone)
+    summary_parser = subparsers.add_parser("summary", help="綜合文字摘要 (優先讀取本地資料)")
+    summary_parser.add_argument("-d", "--date", default=date.today().isoformat(), help="指定日期 (YYYY-MM-DD)")
 
     # Health Subparsers
     health_parser = subparsers.add_parser("health", help="每日健康數據管理，包含步數、心率、能量、壓力、訓練指標等")
@@ -625,9 +757,10 @@ def main():
     add_health_sub(health_subparsers, "blood-pressure", "血壓紀錄")
 
     # 若執行時未帶任何參數，或子命令後面未帶參數，則自動加上 --help 以符合 GEMINI.md 規範
+    # 注意：根據 garmin_tools.md 3.5 節，summary 應支援預設當天日期直接執行
     if len(sys.argv) == 1:
         sys.argv.append("--help")
-    elif len(sys.argv) > 1 and sys.argv[-1] in COMMAND_HANDLERS:
+    elif len(sys.argv) > 1 and sys.argv[-1] in COMMAND_HANDLERS and sys.argv[-1] != "summary":
         sys.argv.append("--help")
 
     args = parser.parse_args()

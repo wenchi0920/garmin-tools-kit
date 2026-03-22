@@ -44,8 +44,9 @@ python3 garmin_tools.py activity
 python3 garmin_tools.py workout
 python3 garmin_tools.py health
 python3 garmin_tools.py race-event
-python3 garmin_tools.py summary
 
+python3 garmin_tools.py summary
+python3 garmin_tools.py summary  預設當天日期 , 要提供所有 的健康數據, 然後不存檔, 使用檔案 , 沒有檔案 再去下載
 
 ### 3.1 活動管理 (`activity`)
 負責備份歷史運動記錄。
