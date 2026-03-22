@@ -1,4 +1,4 @@
-# Garmin Tool Kit (v1.4.1) 🚀
+# Garmin Tool Kit (v1.4.3) 🚀
 
 這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包現在已全面整合為單一入口 `garmin_tools.py`。
 
@@ -20,66 +20,18 @@
 ---
 
 ## 1. VERSION, 程式說明描述
-- **Version**: v1.4.1
+- **Version**: v1.4.3
 - **程式說明描述**: 
-  這是一個用來與 Garmin Connect Web 溝通並抓取資料的命令列工具包。包含活動資料下載、訓練計畫 (Workout) 管理、健康數據匯出 (HRV, Sleep, Stress, VO2 Max, Training Readiness 等)。一切操作皆整合在 `garmin_tools.py` 中，適合進階運動員與想要批量處理資料的使用者。
+  這是一個用來與 Garmin Connect Web 溝通並抓取資料的命令列工具包。包含活動資料下載、訓練計畫 (Workout) 管理、健康數據匯出 (HRV, Sleep, Stress, VO2 Max, Training Readiness 等) 以及賽事行事曆管理。一切操作皆整合在 `garmin_tools.py` 中，適合進階運動員與想要批量處理數據的使用者。
 
 ## 2. 核心功能
 - **整合入口**：一個 `garmin_tools.py` 搞定所有功能，支援子命令模式。
 - **數據導出**：支援將活動導出為 `FIT`, `GPX`, `TCX`, `JSON` 格式，並還原檔案時間。
-- **訓練自動化 (DSL)**：使用 YAML 定義訓練課表，支援複雜重複結構與配速區間。
-- **健康數據中心**：整合所有生理指標至 `health` 子命令，支援超過 20 種健康指標抓取與美化輸出。
-- **自動化備份 (Docker)**：容器內建 `cron` 排程，每天 AM 11:00 自動下載資料。
-
-... (中間省略部分一致的內容) ...
-
-### 子命令 (Subcommands)
-1. **`activity`**: 活動匯出。
-2. **`workout`**: 訓練計畫管理。
-3. **`health`**: 健康數據中心。
-   - `summary`: 每日健康摘要 (步數、心率、壓力、能量)。
-   - `sleep`: 睡眠紀錄與分析。
-   - `body-battery`: 身體能量指數趨勢。
-   - `vo2max`: VO2 Max 與訓練狀態。
-   - `hrv`: HRV (心率變異度) 數據。
-   - `weight`: 體重與 BMI 趨勢。
-   - `max-hr`: 最大心率指標。
-   - `stress/heart-rate/steps/calories/spo2/respiration`: 各項細分指標。
-   - `training-readiness/fitness-age/lactate-threshold/race-predictions`: 進階訓練數據。
-   - `intensity-minutes/hydration/personal-records/insights/blood-pressure`: 其他生理紀錄。
-4. **`race-event`**: 賽事清單與行事曆看板。
-
-## 8. 使用範例 (完整)
-
-**Health / 生理指標 (整合於 health 命令下):**
-```bash
-# 美化輸出當日健康摘要
-python garmin_tools.py health summary --summary
-
-# 查詢指定日期的睡眠分數
-python garmin_tools.py health sleep --summary -d 2026-03-08
-
-# 查看 HRV 趨勢與詳細數據
-python garmin_tools.py health hrv --summary --detailed -sd 2026-03-01
-
-# 上傳體重紀錄
-python garmin_tools.py health weight --upload 70.5
-
-# 查看訓練完備度 (Training Readiness)
-python garmin_tools.py health training-readiness --summary
-
-# 查看體能年齡 (Fitness Age)
-python garmin_tools.py health fitness-age --summary
-```
-
-... (更新 Changelog) ...
-## 12. 更新紀錄 (Changelog)
-- **2026-03-21**: **v1.4.1** - 🚀 **重大重構：健康數據子命令整合。**
-    - 將所有生理指標整合至 `health` 父命令下（如 `health sleep`, `health hrv`）。
-    - 新增支援超過 15 種新的健康指標抓取（Stress, Training Readiness, Fitness Age 等）。
-    - 統一健康數據的儲存路徑與輸出格式，並優化 `resolve_default_output_path` 消除冗餘目錄前綴。
-    - 更新整合測試腳本 (`tests/test_integration_all.py`) 以符合新架構。
-    - 更新 `HealthClient` 擴展 API 覆蓋範圍。
+- **訓練自動化 (DSL)**：使用 YAML 定義訓練課表，支援複雜重複結構與配速/心率區間。
+- **健康數據中心**：整合所有生理指標至 `health` 父命令下，支援超過 20 種健康指標抓取與文字摘要 (`--summary`)。
+- **賽事行事曆**：透過 `race-event` 管理您的比賽目標。
+- **自動化備份 (Docker)**：容器內建 `cron` 排程，每天 AM 11:00 自動執行備份。
+- **智慧啟動**：主程式與各子命令未帶參數時會自動顯示幫助訊息 (`--help`)。
 
 ## 3. 跨平台獨立執行檔下載 (免安裝 Python)
 若您不想安裝 Python 環境，可以直接從 [GitHub Releases](../../releases) 下載對應作業系統的編譯版本：
@@ -87,225 +39,167 @@ python garmin_tools.py health fitness-age --summary
 - **Linux**: 下載 `garmin-tools-linux`。
 - **macOS**: 下載 `garmin-tools-macos`。
 
-下載後，只需在終端機 (或 CMD/PowerShell) 中將其更名為 `garmin-tools` 並加上執行權限 (Linux/Mac) 即可直接使用：
-```bash
-# Linux/Mac 範例
-chmod +x garmin-tools-linux
-./garmin-tools-linux activity -c 5
-```
+下載後，只需在終端機 (或 CMD/PowerShell) 中將其更名為 `garmin-tools` 並加上執行權限 (Linux/Mac) 即可直接使用。
 
 ## 4. 環境設定與安裝
 
 ### 一般使用 (Linux/Mac/Windows)
-- **需求**：Python 3.10 或更高版本。建議使用虛擬環境隔離套件。
+- **需求**：Python 3.10 或更高版本。
 ```bash
 # 1. 複製專案
 git clone <repository_url>
 cd garmin-tools-kit
 
-# 2. 建立並啟動虛擬環境 (視作業系統而定)
+# 2. 建立並啟動虛擬環境
 python3 -m venv virtualenv
-# Linux / Mac:
-source virtualenv/bin/activate
-# Windows (PowerShell):
-.\virtualenv\Scripts\Activate.ps1
+source virtualenv/bin/activate # Windows 用 .\virtualenv\Scripts\Activate.ps1
 
 # 3. 安裝依賴套件
 pip install -r requirements.txt
 ```
 
-### Docker 安裝與執行 (不推薦將密碼存入 .env)
-使用 Docker 可以免去本地環境配置的煩惱。
+### Docker 安裝與執行
+使用 Docker 可以免去本地環境配置。
 ```bash
-# 使用 Docker Compose (推薦)
-# 請透過 Shell 設定環境變數後執行 (避免將密碼存入 .env)
+# 設定環境變數後執行 (避免將密碼存入 .env)
 export GARMIN_USERNAME=your_email@example.com
 export GARMIN_PASSWORD=your_password
 docker-compose run --rm garmin-tools activity -c 5
-
-# 手動 Docker 執行
-docker build -t garmin-tools .
-docker run --rm -v $(pwd)/.garth:/app/.garth -v $(pwd)/data:/app/data \
-  -e GARMIN_USERNAME=$GARMIN_USERNAME -e GARMIN_PASSWORD=$GARMIN_PASSWORD \
-  garmin-tools activity -c 3
 ```
 
 ## 5. 認證機制
-本工具使用 **Garth** 進行 SSO (Single Sign-On) 登入。這是一種安全且推薦的登入方式。
-- 首次成功登入後，登入憑證與 Session 資訊會預設儲存於工作目錄下的 `.garth/` 目錄中。
-- 後續執行指令時將直接讀取憑證，免去重複登入。
-
-請建立並設定環境變數檔案 (預設為 `.env`) 於專案根目錄：
+本工具使用 **Garth** 進行 SSO (Single Sign-On) 登入。
+- 首次登入成功後，憑證會儲存於 `.garth/` 目錄中。
+- 請於根目錄建立 `.env` 檔案或設定環境變數：
 ```env
 GARMIN_USERNAME=your_email@example.com
 GARMIN_PASSWORD=your_password
 ```
 
 ## 6. 使用方式
-無論在哪個作業系統下，都透過執行 `garmin_tools.py` 搭配對應的子命令來使用。
-- **Linux/Mac**: 開啟 Terminal，切換至專案目錄，並載入虛擬環境後執行：
-  `python3 garmin_tools.py [subcommand] [options]`
-- **Windows**: 開啟 Command Prompt 或 PowerShell，載入虛擬環境後執行：
-  `python garmin_tools.py [subcommand] [options]`
+- **Linux/Mac**: `python3 garmin_tools.py [subcommand] [options]`
+- **Windows**: `python garmin_tools.py [subcommand] [options]`
+- **智慧預設**: 直接執行 `python garmin_tools.py` 會顯示幫助資訊。
 
 ## 7. CLI 參數與選項詳細說明
 
 ### 全域選項 (Global Options)
-任何子命令都可以搭配以下全域選項使用：
-- `-h, --help`: 顯示幫助訊息。
 - `--version`: 顯示程式版本。
-- `-v, --verbosity`: 設定日誌詳細度。可重複使用 (`-v` 為 INFO, `-vv` 為 DEBUG, `-vvv` 為 TRACE)。
-- `--username USERNAME`: 覆寫 `.env` 中的 Garmin 帳號。
-- `--password PASSWORD`: 覆寫 `.env` 中的 Garmin 密碼。
-- `--env-file [ENV_FILE]`: 指定自訂的環境變數檔案路徑 (預設為 `.env`)。
-- `-ss SESSION, --session SESSION`: 指定 SSO 憑證儲存目錄 (預設為 `.garth`)。
-- `--over-write`: 如果檔案存在則覆蓋，否則忽略已存在的檔案。
-- `--progress`: 顯示目前進度，啟用表示用 tqdm 顯示目前進度，並同時維持日誌輸出。
+- `-v, --verbosity`: 設定日誌詳細度 (`-v`, `-vv`, `-vvv`)。
+- `--username USERNAME`: 覆寫 Garmin 帳號。
+- `--password PASSWORD`: 覆寫 Garmin 密碼。
+- `--env-file [FILE]`: 指定自訂環境變數檔案。
+- `--progress`: 啟用進度條顯示。
+- `--over-write`: 檔案存在時覆蓋。
+- `--gui`: 啟動圖形化介面。
 
 ### 子命令 (Subcommands)
 1. **`activity`**: 活動匯出。
-   - `-c COUNT, --count COUNT`: 下載最新的 N 筆活動，或使用 `all` 下載全部。
-   - `-sd START_DATE, --start_date START_DATE`: 篩選起始日期 (YYYY-MM-DD)。
-   - `-ed END_DATE, --end_date END_DATE`: 篩選結束日期 (YYYY-MM-DD)。
-   - `-f {gpx,tcx,original,json}, --format`: 指定下載格式 (預設通常為 original)。
-   - `-d DIRECTORY, --directory DIRECTORY`: 指定儲存目錄 (預設為 `data/activity/`)。
-   - `-ot, --originaltime`: 將下載檔案的系統建立/修改時間修改為活動發生的真實時間。
-   - `--desc [DESC]`: 在檔名中加入活動描述 (預設最多 20 字元)。
-2. **`workout`**: 訓練計畫管理 (支援 `list`, `get`, `upload`, `delete` 四個動作)。
-   - `list`: 列出雲端上的計畫。
-   - `get <ID> -o <FILE>`: 下載指定 ID 的計畫為 YAML。
-   - `upload <FILE>`: 將 YAML 定義上傳為 Garmin 課表。
-   - `delete <ID>`: 刪除指定的課表 ID。
-3. **`health`**: 每日健康摘要。
-   - `-d, -sd, -ed`: 指定單日或日期範圍。
-   - `--summary`: 美化並總結輸出結果。
-   - `-o OUTPUT`: 匯出至檔案 (若未指定且無 `--summary`，預設儲存至 `data/health/`)。
-4. **`sleep`**: 睡眠紀錄與分析。
-   - `-d, -sd, -ed, --summary, -o OUTPUT`: 同上 (預設儲存至 `data/sleep/`)。
-5. **`body-battery`**: 身體能量指數。
-   - `-d, -sd, -ed, --summary, -o OUTPUT`: 同上 (預設儲存至 `data/body-battery_<Year>/`)。
-6. **`vo2max`**: VO2 Max 與訓練狀態。
-   - `-d, -sd, -ed, --summary, -o OUTPUT`: 同上 (預設儲存至 `data/vo2max/`)。
-7. **`race-event`**: 賽事清單。
-   - `-d, -sd, -ed, --summary, -o OUTPUT`: 同上 (預設儲存至 `data/race-event/`)。
-8. **`hrv`**: HRV 數據。
-   - `-d, -sd, -ed, --summary, -o OUTPUT`: 同上 (預設儲存至 `data/hrv/`)。
-   - `--detailed`: 包含 5 分鐘級別的詳細採樣點資料。
-9. **`weight`**: 體重數據。
-   - `-d, -sd, -ed, --summary, -o OUTPUT`: 同上 (預設儲存至 `data/weight/`)。
-   - `--upload UPLOAD`: 上傳一筆新的體重紀錄 (單位為 kg)。
-10. **`max-hr`**: 心率指標。
-    - `-d DATE`: 查詢特定日期。
-    - `-l LIMIT, --limit LIMIT`: 限制查詢筆數。
-    - `--summary`: 美化輸出。
+   - `-c COUNT`: 下載 N 筆或 `all`。
+   - `-f FORMAT`: 格式 (`gpx`, `tcx`, `original`, `json`)。
+   - `-ot`: 還原活動真實時間。
+   - `--desc [N]`: 檔名加入描述 (最長 N)。
+2. **`workout`**: 訓練計畫管理。
+   - `list`: 列出計畫。
+   - `get <ID>`: 下載為 YAML。
+   - `upload <FILE>`: 上傳 YAML/DSL 課表。
+   - `delete <ID>`: 刪除計畫。
+3. **`health`**: 整合健康數據。
+   - **子命令**: `summary`, `sleep`, `hrv`, `body-battery`, `vo2max`, `weight`, `max-hr`, `stress`, `steps`, `training-readiness`, `training-status`, `fitness-age`, `lactate-threshold`, `race-predictions` 等。
+   - `--summary`: 美化輸出摘要。
+   - `--detailed`: (僅 hrv) 包含採樣點。
+   - `--upload <KG>`: (僅 weight) 上傳體重。
+4. **`race-event`**: 賽事行事曆。
+   - `-sd`, `-ed`: 日期範圍篩選。
+   - `--summary`: 列表顯示。
+5. **`summary`**: 綜合日報。
+   - `-d DATE`: 彙整指定日期所有本地/雲端數據。
 
 ## 8. 使用範例 (完整)
 
-**通用參數示範：**
+**活動管理：**
 ```bash
-python garmin_tools.py -vv --env-file .prod.env activity -c 5
+# 下載最新 5 筆 GPX 活動並還原時間戳
+python garmin_tools.py activity -c 5 -f gpx -ot --progress
 ```
 
-**Activity (活動匯出):**
+**訓練計畫：**
 ```bash
-# 下載最新 10 筆 GPX 活動，使用活動描述為檔名，並還原檔案時間戳
-python garmin_tools.py activity -c 10 -f gpx --desc 20 -ot
-
-# 下載 2026-01-01 到 2026-01-31 的 FIT 原始檔
-python garmin_tools.py activity -sd 2026-01-01 -ed 2026-01-31 -f original
-```
-
-**Workout (訓練計畫):**
-```bash
-# 上傳課表
+# 上傳自定義間歇課表
 python garmin_tools.py workout upload example/yasso800_dsl.yaml
-
-# 列出現有課表
-python garmin_tools.py workout list
-
-# 下載單一課表並儲存為 YAML
-python garmin_tools.py workout get 123456789 -o my_workout.yaml
-
-# 刪除課表
-python garmin_tools.py workout delete 123456789
 ```
 
-**Health / 生理指標:**
+**健康數據 (整合 health 命令)：**
 ```bash
-# 美化輸出當日 HRV，並附帶詳細數據
-python garmin_tools.py hrv --summary --detailed
+# 查看今日睡眠分數與分析
+python garmin_tools.py health sleep --summary
 
-# 查詢指定日期的睡眠分數
-python garmin_tools.py sleep --summary -d 2026-03-08
+# 查看最近一週的 HRV 趨勢
+python garmin_tools.py health hrv --summary -sd 2026-03-15
 
-# 查看一段時間內的 Body Battery (會自動儲存至 data/body-battery_2026/)
-python garmin_tools.py body-battery -sd 2026-03-01 -ed 2026-03-07
+# 上傳今日體重 (70.5kg)
+python garmin_tools.py health weight --upload 70.5
 
-# 上傳體重紀錄 (例如: 70.5kg)
-python garmin_tools.py weight --upload 70.5
+# 查看訓練完備度與 VO2 Max
+python garmin_tools.py health training-readiness --summary
+python garmin_tools.py health vo2max --summary
+```
 
-# 查看最高心率歷史
-python garmin_tools.py max-hr --limit 5 --summary
+**賽事與綜合摘要：**
+```bash
+# 查看 2026 年賽事
+python garmin_tools.py race-event -sd 2026-01-01 -ed 2026-12-31 --summary
 
-# 查看 VO2 Max 趨勢與訓練狀態
-python garmin_tools.py vo2max --summary -sd 2026-01-01 -ed 2026-03-10
-
-# 查看近期賽事清單
-python garmin_tools.py race-event --summary
-
-# 查詢每日健康摘要 (步數、心率等)
-python garmin_tools.py health --summary -d 2026-03-09
+# 一鍵生成今日健康全覽
+python garmin_tools.py summary
 ```
 
 ## 9. 完整的 Workout Example 範例
 
-此工具支援使用 YAML 高度自訂各種類型的跑步與訓練計畫。
-
-### 1. 乳酸閾值/門檻跑 (Lactate Threshold)
+### 1. 乳酸門檻 (Lactate Threshold)
 ```yaml
 workouts:
   "門檻巡航間歇 (3x3km)":
-    - warmup: 2km @H(z2)
+    - warmup: 15min @H(z2)
     - repeat(3):
-      - interval: 3km @P(4:45-4:55)
+      - run: 3000m @P(4:30-4:45)
       - recovery: 2min @H(z1)
-    - cooldown: 2km
+    - cooldown: 10min @H(z1)
 ```
 
 ### 2. 馬拉松 LSD (Long Slow Distance)
 ```yaml
 workouts:
-  "Marathon LSD 25km":
-    - interval: 25km @H(z2)
+  "週日長跑 (LSD) 120min":
+    - warmup: 10min @H(z1)
+    - run: 100min @H(z2)
+    - cooldown: 10min @H(z1)
 ```
 
 ### 3. 金字塔間歇訓練 (Pyramid Intervals)
 ```yaml
 workouts:
   "速度金字塔 (4-8-12-8-4)":
-    - repeat(1):
-      - interval: 400m @P(4:00)
-      - recovery: 200m
-      - interval: 800m @P(4:10)
-      - recovery: 400m
-      - interval: 1200m @P(4:20)
-      - recovery: 600m
-      - interval: 800m @P(4:10)
-      - recovery: 400m
-      - interval: 400m @P(4:00)
+    - warmup: 15min @H(z2)
+    - interval: 400m @P(3:45-4:00)
+    - recovery: 90s @H(z1)
+    - interval: 800m @P(4:00-4:15)
+    - recovery: 2min @H(z1)
+    - interval: 1200m @P(4:00-4:15)
+    - recovery: 3min @H(z1)
+    - interval: 800m @P(4:00-4:15)
+    - recovery: 2min @H(z1)
+    - interval: 400m @P(3:45-4:00)
+    - cooldown: 10min @H(z1)
 ```
 
 ### 4. 短距離衝刺 (Sprint Repeats)
 ```yaml
-settings:
-  deleteSameNameWorkout: true
-definitions:
-  Sprint_Pace: 3:00-3:30
 workouts:
   "斜坡/平地衝刺 (10x30s)":
     - warmup: 20min @H(z2)
     - repeat(10):
-      - interval: 30s @P($Sprint_Pace)
+      - interval: 30s @P(3:00-3:30)
       - rest: 90s @H(z1)
     - cooldown: 15min @H(z1)
 ```
@@ -314,100 +208,56 @@ workouts:
 ```yaml
 workouts:
   "VO2 Max 間歇 (5x1k)":
-    - warmup: 15min
+    - warmup: 15min @H(z2)
     - repeat(5):
-      - interval: 1000m @P(4:00-4:10)
+      - interval: 1000m @P(3:55-4:10)
       - recovery: 3min @H(z1)
-    - cooldown: 10min
+    - cooldown: 10min @H(z1)
 ```
 
 ### 6. 亞索 800 (Yasso 800)
 ```yaml
 workouts:
-  "亞索 800 (10趟)":
+  "亞索 800 (10 趟)":
     - warmup: 15min @H(z2)
     - repeat(10):
       - interval: 800m @P(4:20-4:30)
-      - recovery: 3:30 @H(z1)
-    - cooldown: 10min
+      - recovery: 210s @H(z1)
+    - cooldown: 10min @H(z1)
 ```
 
 ## 10. Workout DSL 完整指南
 
-此專案使用獨創的 DSL (Domain Specific Language) 結合 YAML 檔案，可將自然語言風格的課表轉換為 Garmin API 支援的結構。
-
-### 結構說明
-- `settings`: (可選) 例如 `deleteSameNameWorkout: true` 可以在上傳時自動覆蓋舊的同名課表。
-- `definitions`: (可選) 全域變數，方便統一管理配速或心率區間，例如 `My_Pace: 4:30-5:00`，後續可透過 `$My_Pace` 呼叫。
-- `workouts`: 課表主體，使用 `Map` 定義，鍵為課表名稱，值為步驟列表。
-
-### 步驟與距離/時間定義
-- **動作類型**: `warmup` (暖身), `interval` (訓練), `recovery` (恢復), `rest` (休息), `cooldown` (緩和)。
-- **長度單位**:
-  - 距離: `km`, `m` (例如: `3km`, `400m`)
-  - 時間: `min`, `s` (例如: `15min`, `30s`)
-- **重複區塊**: 
-  - `repeat(N):` 代表接下來的子步驟將執行 `N` 次。必須縮排定義子步驟。
-
-### 目標區間定義 (Targets)
-- **配速 `@P(...)`**: 可以給定範圍 `4:00-4:10`，或單一數值 `4:00` (系統會視為精確目標或稍做寬容計算)。
-- **心率 `@H(...)`**:
-  - `z1` ~ `z5`: 內建的 Garmin 心率區間 (Zone 1 到 Zone 5)。
-  - 也可以直接給定數值 `140-150` 表示目標心率介於 140~150 bpm。
-
-### DSL 語法範例解析
-`- interval: 800m @P(4:20-4:30)`
-- 動作: `interval` (間歇)
-- 條件: 達到 `800m`
-- 目標: 配速介於 `4:20/km` 到 `4:30/km` 之間。
+本工具支援 DSL 將 YAML 轉換為 Garmin API 結構。
+- **目標設定**:
+  - `@P(配速)`: 如 `@P(4:30-4:45)`。
+  - `@H(心率)`: 如 `@H(z2)` 或 `@H(140-150)`。
+- **重複區塊**: `repeat(N):` 後接縮排步驟。
+- **動作**: `warmup`, `run`, `interval`, `recovery`, `rest`, `cooldown`。
 
 ## 11. 開發與測試
-
-為確保此專案在生產環境下穩健運作，所有開發行為必須符合《生產級工程開發規範彙整》(參考 `GEMINI.md`)。
-
-### 測試與品質保證
-專案包含完整的 `pytest` 測試集，確保核心邏輯的穩定性。每次異動都必須執行完整測試，包含：單元測試 (Unit Test) / 整合測試 (Integration Test) / 端對端測試 (E2E Test)。
-- **測試命令**: 執行所有測試需涵蓋全部子命令與選項。
-- **測試目錄**:
-  - `tests/`: 包含 `test_activity_script.py`, `test_workout_script.py` 等 CLI 測試。
-  - `models/`: 透過 `Pydantic v2` 自帶嚴謹的結構驗證，保護 DTO 轉換的正確性。
-
-每次修改後請確保所有測試皆綠燈，並落實「最小異動原則」。
+- **嚴謹模式**: 必須 100% 覆蓋 Type Hints。
+- **測試命令**: 執行 `pytest` 進行全量驗證 (Unit, Integration, E2E)。
+- **日誌**: 使用 `loguru` 進行分層紀錄。
 
 ## 12. 更新紀錄 (Changelog)
 
-- **2026-03-20**: **v1.4.1** - 版本修正與功能更新。
-    - 實作分時自動備份機制 (08, 13, 18, 23)。
-    - 修正生理數據下載範圍為昨日與今日。
-    - 統一專案版本號至 v1.4.1。
-
-- **2026-03-07**: v1.0.0 - 初始發布 (Activity/Workout)。
-- **2026-03-08**: v1.2.1 - 完善 DTO 支援與環境變數優先級。
-- **2026-03-09**: **v1.4.0** - 🚀 **重大更新：10 合 1 整合為 `garmin_tools.py` 單一入口。**
-    - 新增 `hrv`, `sleep`, `health`, `body-battery`, `vo2max`, `max-hr`, `weight`, `race-event` 整合命令。
-    - 統一認證處理流程與錯誤處理。
-    - 支援美化摘要 (`--summary`) 模式。
-    - 更新 `README.md` 包含完整使用範例、全功能選項詳解與開發測試規範。
-- **2026-03-10**: **v1.4.1** - 文件更新與範例完善。
-    - 補齊 `workout delete`, `vo2max`, `race-event`, `health` 等子命令範例。
-    - 修正 `README.md` 中遺漏的參數說明。
-- **2026-03-11**: **v1.4.1** - 🚀 **功能更新：新增 `--progress` 進度顯示模式與預設執行命令。**
-    - 支援活動下載、健康數據 (Health/Sleep/HRV) 範圍抓取、Workout 批量上傳等任務的進度條顯示。
-    - 整合 `tqdm` 與 `loguru`，確保進度條顯示時日誌輸出不閃爍。
-    - **預設行為**：執行 `python garmin_tools.py` 而不帶子命令時，將自動執行 `activity -c 5` (下載最新 5 筆活動)。
-- **2026-03-11**: **v1.4.2** - 版本手動更新。
-- **2026-03-12**: **v1.4.2** - 根據 GEMINI.md 規範更新 Docker 備份排程為 AM 11:00。
-- **2026-03-12**: **v1.4.2** - 實作資料存放標準化 (Data Storage Standardization)，支援自動目錄生成。
-- **2026-03-17**: **v1.4.3** - 🚀 **修復更新：優化賽事清單處理。**
-    - 修正 `race-event` 子命令忽略 `-sd` (start_date) 與 `-ed` (end_date) 參數的 Bug。
-    - 優化 `race-event` 在無賽事時的 `--summary` 輸出美化。
-    - 手動更新版本號至 v1.4.3。
-- **2026-03-18**: v1.4.2 - 版本修正回 1.4.2。
+- **2026-03-22**: **v1.4.3** - 🚀 **版本穩定性更新與 README 重構。**
+    - 根據 GEMINI.md 規範重構 README.md。
+    - 優化健康數據異常處理與 Pydantic 模型容錯。
+    - 更新主程式智慧啟動邏輯（未帶參數自動執行 --help）。
+- **2026-03-21**: **v1.4.1** - 🚀 **重大重構：健康數據子命令整合。**
+    - 將所有生理指標整合至 `health` 父命令下（如 `health sleep`, `health hrv`）。
+    - 統一數據儲存路徑規範（DSS 標準）。
+- **2026-03-17**: v1.4.3 - 修正 `race-event` 忽略日期範圍篩選的 Bug。
+- **2026-03-12**: v1.4.2 - 實作資料存放標準化 (Data Storage Standardization)。
+- **2026-03-11**: v1.4.1 - 新增 `--progress` 全域參數支援。
+- **2026-03-09**: v1.4.0 - 重大更新：10 合 1 整合為單一入口。
+- **2026-03-07**: v1.0.0 - 初始發布。
 
 ## 13. 免責聲明
-
-免責聲明：本工具使用 Garmin Connect 的非官方 API。請遵守 Garmin 的服務條款，避免高頻率的惡意請求。使用者若因濫用高頻請求導致帳號遭受限制，請自行負責。
-為了符合此規範，程式在每次下載活動與抓取活動列表後會隨機延遲 0.5s - 1.5s。
+本工具使用 Garmin Connect 的非官方 API。請遵守 Garmin 服務條款，避免高頻惡意請求。
+為符合規範，程式在每次下載或抓取列表後會隨機延遲 **0.5s - 1.5s**。
 
 ---
-*Generated by Gemini CLI - 2026-03-12*
+*Generated by Gemini CLI - 2026-03-22*
