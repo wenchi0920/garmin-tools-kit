@@ -231,12 +231,29 @@ class GarminGUI:
             self.log(f"🚀 處理中: {cmd}")
             
             cli_cmd = [sys.executable, "garmin_tools.py", "--username", user, "--password", pw]
-            if cmd == "max-hr": cli_cmd.extend([cmd, "-d", ed])
-            else: cli_cmd.extend([cmd, "--start_date", sd, "--end_date", ed])
             
-            if cmd == "activity": cli_cmd.extend(["--directory", path, "--count", "all"])
-            elif cmd == "max-hr": cli_cmd.append("--summary")
-            else: cli_cmd.extend(["--output", os.path.join(path, f"{cmd}_{sd}_{ed}.json")])
+            # 健康數據子命令映射
+            health_sub_map = {
+                "health": "summary",
+                "sleep": "sleep",
+                "hrv": "hrv",
+                "body-battery": "body-battery",
+                "vo2max": "vo2max",
+                "weight": "weight",
+                "max-hr": "max-hr"
+            }
+            
+            if cmd in health_sub_map:
+                sub = health_sub_map[cmd]
+                cli_cmd.extend(["health", sub, "--start_date", sd, "--end_date", ed, "--summary"])
+                if sub == "hrv":
+                    cli_cmd.append("--detailed")
+                cli_cmd.extend(["--output", os.path.join(path, f"{sub}_{sd}_{ed}.json")])
+            elif cmd == "activity":
+                cli_cmd.extend(["activity", "--start_date", sd, "--end_date", ed, "--directory", path, "--count", "all", "-ot"])
+            elif cmd == "race-event":
+                cli_cmd.extend(["race-event", "--start_date", sd, "--end_date", ed, "--summary"])
+                cli_cmd.extend(["--output", os.path.join(path, f"{cmd}_{sd}_{ed}.json")])
 
             try:
                 self.current_process = subprocess.Popen(cli_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")

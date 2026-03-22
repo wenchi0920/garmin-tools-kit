@@ -367,22 +367,6 @@ def process_health_command(args: argparse.Namespace):
             else:
                 data = health_client.get_daily_summary(args.date)
                 if data: metric_collection = {"data": data.model_dump(mode="json")}
-            
-            if args.summary and metric_collection.get("data"):
-                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-                for entry in items:
-                    print("-" * 60)
-                    print(f"📅 日期: {entry.get('calendarDate')}")
-                    if cmd in ["summary", "steps"]:
-                        print(f"🏃 步數: {entry.get('totalSteps', 0)}/{entry.get('dailyStepGoal', 0)} | 距離: {entry.get('totalDistanceMeters', 0) / 1000:.2f}km")
-                    if cmd in ["summary", "calories"]:
-                        print(f"🔥 卡路里: 總計 {entry.get('totalKilocalories')} | 基礎 {entry.get('bmrKilocalories')} | 活動 {entry.get('activeKilocalories')}")
-                    if cmd in ["summary", "heart-rate"]:
-                        print(f"💓 心率: 靜止 {entry.get('restingHeartRate')} | 最低 {entry.get('minHeartRate')} | 最高 {entry.get('maxHeartRate')}")
-                    if cmd in ["summary", "stress"]:
-                        print(f"😫 壓力: 平均 {entry.get('averageStressLevel')} | 最高 {entry.get('maxStressLevel')}")
-                    if cmd in ["summary", "spo2", "respiration"]:
-                        print(f"🩸 SpO2: {entry.get('averageSpo2', 'N/A')}% | 🫁 呼吸: {entry.get('avgWakingRespirationValue', 'N/A')} brpm")
 
         elif cmd == "sleep":
             client = SleepClient(email=username, password=password, session_dir=args.session)
@@ -392,12 +376,6 @@ def process_health_command(args: argparse.Namespace):
             else:
                 data = client.get_sleep_data(args.date)
                 if data: metric_collection = {"data": data.model_dump(mode="json")}
-            if args.summary and metric_collection.get("data"):
-                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-                for s in items:
-                    dto = s.get("dailySleepDTO", {})
-                    score = dto.get("sleepScores", {}).get("overall", {}).get("value", "N/A")
-                    print(f"😴 {dto.get('calendarDate')} | 分數: {score} | 總計: {format_seconds(dto.get('sleepTimeSeconds', 0))} | 深層: {format_seconds(dto.get('deepSleepSeconds', 0))}")
 
         elif cmd == "body-battery":
             client = BodyBatteryClient(email=username, password=password, session_dir=args.session)
@@ -407,11 +385,6 @@ def process_health_command(args: argparse.Namespace):
             else:
                 data = client.get_body_battery_report(args.date)
                 if data: metric_collection = {"data": data.model_dump(mode="json")}
-            if args.summary and metric_collection.get("data"):
-                items = metric_collection["data"] if isinstance(metric_collection["data"], list) else [metric_collection["data"]]
-                for b in items:
-                    feedback = b.get('bodyBatteryDynamicFeedbackEvent', {}) or {}
-                    print(f"🔋 {b.get('calendarDate')} | 充電: {b.get('charged')} | 消耗: {b.get('drained')} | 評分: {feedback.get('feedbackShortType', 'N/A')}")
 
         elif cmd == "hrv":
             client = HrvClient(email=username, password=password, session_dir=args.session)
@@ -439,13 +412,6 @@ def process_health_command(args: argparse.Namespace):
             else:
                 entry = client.get_latest_weight(args.date)
                 if entry: metric_collection = {"data": entry.model_dump(mode="json")}
-            if args.summary and metric_collection.get("data"):
-                data = metric_collection["data"]
-                entries = data["dateWeightList"] if "dateWeightList" in data else [data]
-                for w in entries:
-                    ts = w.get("timestamp") or w.get("date")
-                    dt = datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
-                    print(f"⚖️ {dt} | 體重: {w.get('weight', 0) / 1000.0:.2f} kg | BMI: {w.get('bmi', 'N/A')} | 體脂: {w.get('bodyFat', 'N/A')}%")
 
         elif cmd == "vo2max" or cmd == "training-status":
             client = Vo2MaxClient(email=username, password=password, session_dir=args.session)
