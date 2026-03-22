@@ -40,6 +40,13 @@ python garmin_tools.py race-event => python garmin_tools.py race-event --help
 
 ## 3. 子命令實作詳解
 
+python3 garmin_tools.py activity
+python3 garmin_tools.py workout
+python3 garmin_tools.py health
+python3 garmin_tools.py race-event
+python3 garmin_tools.py summary
+
+
 ### 3.1 活動管理 (`activity`)
 負責備份歷史運動記錄。
 *   **檔案命名詳細規則 (Naming Convention)**:
