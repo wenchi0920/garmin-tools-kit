@@ -102,6 +102,13 @@ python garmin_tools.py race-event => python garmin_tools.py race-event --help
 *   支援查看特定日期或範圍內的賽事紀錄。
 *   `--summary` 會以時間軸形式美化輸出賽事清單。
 
+
+
+### 3.5 文字摘要 (`summary`)
+彙整  指定日期 文字摘要 預設當天日期， 優先使用檔案資料，如果沒有資料在下載
+**通用參數**: `-d, --date` (單日)
+
+
 ---
 
 ## 4. 資料儲存與檔名規範 (DSS)
