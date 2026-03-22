@@ -8,6 +8,13 @@
 
 ### 1.1 智慧預設行為 (Smart Default)
 若直接執行 `python garmin_tools.py` , `python garmin_tools.py activity` , `python garmin_tools.py workout` , `python garmin_tools.py health`, `python garmin_tools.py race-event` 而不帶任何子命令，系統將自動啟動預設任務：
+
+python garmin_tools.py => python garmin_tools.py --help
+python garmin_tools.py activity => python garmin_tools.py activity --help
+python garmin_tools.py workout => python garmin_tools.py workout --help
+python garmin_tools.py health => python garmin_tools.py health --help
+python garmin_tools.py race-event => python garmin_tools.py race-event --help
+
 *   **執行指令**: `--help`
 
 ### 1.2 認證獲取優先級 (Auth Hierarchy)
@@ -42,12 +49,12 @@
     *   **時區偏移**: `±HHMM` (例如 `+0800` 代表台北/北京時區)。
     *   **描述欄位**: 若帶有 `--desc` 參數且該活動有描述文字，系統會過濾非法字元並截取指定長度附加於後方。
     *   **範例**: `activity_2026-03-21_08-30-00+0800_MorningRun.fit`
-*   `-c, --count`: 支援整數或 `all`。
+*   `-c, --count`: 支援整數或 `all`, 預設 10 。
 *   `-d, --date`: 指定單一日期 (YYYY-MM-DD)。
 *   `-sd, --start-date`: 篩選起始日期 (YYYY-MM-DD)。
 *   `-ed, --end-date`: 篩選結束日期 (YYYY-MM-DD)。
-*   `-f, --format`: 支援 `original` (FIT), `gpx`, `tcx`, `json`。
-*   `-ot, --originaltime`: 修正檔案的系統「建立/修改時間」，使其與運動時間同步（使用 GMT 時間戳）。
+*   `-f, --format`: 支援 `original` (FIT), `gpx`, `tcx`, `json`, 預設 original。
+*   `-ot, --originaltime`: 修正檔案的系統「建立/修改時間」，使其與運動時間同步（使用 GMT 時間戳）, 預設使用。
 *   `--directory`: 指定儲存目錄 (預設 `data/activity`)。
 *   `--desc [N]`: 檔名加入活動描述，截取前 `N` 個字元。
 

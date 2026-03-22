@@ -9,7 +9,7 @@ class ActivityClient(Client):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def list_activities(self, count="1", start_date=None, end_date=None):
+    def list_activities(self, count="10", start_date=None, end_date=None):
         """
         List activities from Garmin Connect
         """
@@ -49,7 +49,7 @@ class ActivityClient(Client):
             
         return all_activities
 
-    def download_activity(self, activity, format="gpx", directory="./", original_time=False, desc=None, overwrite=True):
+    def download_activity(self, activity, format="gpx", directory="./", original_time=True, desc=None, overwrite=True):
         """
         Download a single activity in specified format
         """

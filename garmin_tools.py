@@ -532,17 +532,17 @@ def main():
     parser.add_argument("--progress", action="store_true", help="顯示目前進度，啟用表示 用 tqdm 顯示目前進度/也要顯示log")
     parser.add_argument("--gui", action="store_true", help="啟動圖形化使用者介面 (GUI)")
 
-    subparsers = parser.add_subparsers(dest="command", help="子命令 (預設: activity -c 5)")
+    subparsers = parser.add_subparsers(dest="command", help="子命令 (未指定則顯示 --help)")
 
     # Activity
     activity_parser = subparsers.add_parser("activity", help="活動匯出")
-    activity_parser.add_argument("-c", "--count", default="1")
+    activity_parser.add_argument("-c", "--count", default="10", help="支援整數或 all, 預設 10")
     activity_parser.add_argument("-d", "--date", help="指定單一日期 (YYYY-MM-DD)")
     activity_parser.add_argument("-sd", "--start-date", "--start_date")
     activity_parser.add_argument("-ed", "--end-date", "--end_date")
     activity_parser.add_argument("-f", "--format", choices=["gpx", "tcx", "original", "json"], default="original")
     activity_parser.add_argument("--directory", default="data/activity")
-    activity_parser.add_argument("-ot", "--originaltime", action="store_true")
+    activity_parser.add_argument("-ot", "--originaltime", action="store_true", default=True, help="修正檔案時間 (預設啟用)")
     activity_parser.add_argument("--desc", nargs="?", const=True)
 
     # Workout
