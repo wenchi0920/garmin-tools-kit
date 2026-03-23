@@ -1,4 +1,4 @@
-# Garmin Tool Kit (v1.4.5) 🚀
+# Garmin Tool Kit (v1.4.6) 🚀
 
 這是一個功能強大的 Garmin Connect 自動化工具包，旨在幫助運動愛好者與數據分析師透過 Python 腳本輕鬆管理 Garmin Connect 上的數據。本工具包現在已全面整合為單一入口 `garmin_tools.py`。
 
@@ -20,7 +20,7 @@
 ---
 
 ## 1. VERSION, 程式說明描述
-- **Version**: v1.4.5
+- **Version**: v1.4.6
 - **程式說明描述**: 
   這是一個用來與 Garmin Connect Web 溝通並抓取資料的命令列工具包。包含活動資料下載、訓練計畫 (Workout) 管理、健康數據匯出 (HRV, Sleep, Stress, VO2 Max, Training Readiness 等) 以及賽事行事曆管理。一切操作皆整合在 `garmin_tools.py` 中，適合進階運動員與想要批量處理數據的使用者。
 
@@ -248,6 +248,8 @@ workouts:
 
 ## 12. 更新紀錄 (Changelog)
 
+- **2026-03-23**: **v1.4.6** - 🚀 **Bug Fix: 修正 Summary 顯示錯誤。**
+    - 解決當 `totalDistanceMeters` 為 `None` 時導致的計算錯誤。
 - **2026-03-23**: **v1.4.5** - 🚀 **優化 Health Summary 表格顯示。**
     - 新增睡眠分數、HRV 與血壓欄位。
     - `health summary` 預設顯示過去 7 天資料。
