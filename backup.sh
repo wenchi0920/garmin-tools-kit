@@ -10,6 +10,7 @@
 # 2026-03-22: 增加 -d 參數支援強制全量備份任務，優化 METRICS 循環邏輯
 # 2026-03-22: 實作 Daily Logging 功能，日誌按日存放於 logs/ 目錄
 # 2026-03-22: 實作 Command Logging 功能，完整記錄每一步執行的指令
+# 2026-03-23: v1.3.2 - 將 health summary 備份時段調整為 (08, 13, 18, 23) 與 FIT 同步
 
 set -euo pipefail
 
@@ -56,10 +57,14 @@ echo "==========================================================================
 # 確保基礎數據目錄存在
 mkdir -p "${SCRIPT_DIR}/data"
 
-# 1. 活動數據 (FIT): 於 08, 13, 18, 23 時執行，或強制執行時觸發
+# 1. 活動數據 (FIT) 與 綜合摘要 (Summary): 於 08, 13, 18, 23 時執行，或強制執行時觸發
 if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" || "$HOUR" == "13" || "$HOUR" == "18" || "$HOUR" == "23" ]]; then
     echo "📦 [FIT] 備份活動數據 (自 ${YESTERDAY} 至 ${TODAY})..."
     run_cmd python3 garmin_tools.py -v activity --start_date "${YESTERDAY}" --end_date "${TODAY}" --format original --originaltime
+
+    echo "📊 [SUMMARY] 備份綜合摘要 (${YESTERDAY} & ${TODAY})..."
+    run_cmd python3 garmin_tools.py -v --over-write health summary --date "${YESTERDAY}" --summary
+    run_cmd python3 garmin_tools.py -v --over-write health summary --date "${TODAY}" --summary
 fi
 
 # 2. 其餘生理數據: 僅於 08 時執行全量備份，或強制執行時觸發
@@ -68,7 +73,7 @@ if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" ]]; then
     
     # 定義需要抓取雙日資料的指標 (Daily Metrics)
     METRICS=(
-        "summary" "sleep" "body-battery" "hrv" "weight" "vo2max" 
+        "sleep" "body-battery" "hrv" "weight" "vo2max" 
         "training-status" "stress" "heart-rate" "steps" "calories" 
         "training-readiness" "spo2" "respiration" "hydration"
     )
