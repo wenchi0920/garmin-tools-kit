@@ -19,6 +19,7 @@ Changelog:
 2026-03-23: 1.4.4 - 新增 health summary 表格顯示功能，支援從本地檔案彙整多日數據並匯出為 .txt 格式。
 2026-03-23: 1.4.5 - 優化 health summary 表格顯示，新增睡眠分數、HRV 與血壓欄位，並預設顯示 7 天資料。
 2026-03-23: 1.4.6 - 修正 health summary 表格顯示時，因部分數據為 None 導致的型別錯誤。
+2026-03-23: 1.4.7 - 優化表格顯示格式，確保所有 None 值統一顯示為 --。
 """
 import argparse
 import getpass
@@ -40,7 +41,7 @@ from client import (
 )
 from models.raceEventModel import RaceEventModel
 
-VERSION = "1.4.6"
+VERSION = "1.4.7"
 
 
 # ==============================================================================
@@ -292,9 +293,9 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         steps = f"{(entry.get('totalSteps') or 0)}/{(entry.get('dailyStepGoal') or 0)}"
         dist = f"{(entry.get('totalDistanceMeters') or 0) / 1000:.2f}km"
         cals = f"{int(entry.get('activeKilocalories') or 0)}/{int(entry.get('totalKilocalories') or 0)}"
-        hr = f"{entry.get('restingHeartRate', '--')}/{entry.get('maxHeartRate', '--')}"
-        stress = f"{entry.get('averageStressLevel', '--')}"
-        bb = f"{entry.get('bodyBatteryHighestValue', '--')}/{entry.get('bodyBatteryLowestValue', '--')}"
+        hr = f"{(entry.get('restingHeartRate') or '--')}/{(entry.get('maxHeartRate') or '--')}"
+        stress = f"{(entry.get('averageStressLevel') or '--')}"
+        bb = f"{(entry.get('bodyBatteryHighestValue') or '--')}/{(entry.get('bodyBatteryLowestValue') or '--')}"
         
         # 額外欄位 (從彙整中獲取)
         sleep_score = str(entry.get("sleep_score", "--"))
