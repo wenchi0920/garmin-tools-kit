@@ -63,8 +63,9 @@ if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" || "$HOUR" == "13" || "$HOUR" ==
     run_cmd python3 garmin_tools.py -v activity --start_date "${YESTERDAY}" --end_date "${TODAY}" --format original --originaltime
 
     echo "📊 [SUMMARY] 備份綜合摘要 (${YESTERDAY} & ${TODAY})..."
-    run_cmd python3 garmin_tools.py -v --over-write health summary --date "${YESTERDAY}" --summary
-    run_cmd python3 garmin_tools.py -v --over-write health summary --date "${TODAY}" --summary
+    python3 garmin_tools.py health summary -d 7 -o data/health/report.txt
+#    run_cmd python3 garmin_tools.py -v --over-write health summary --date "${YESTERDAY}" --summary
+#    run_cmd python3 garmin_tools.py -v --over-write health summary --date "${TODAY}" --summary
 fi
 
 # 2. 其餘生理數據: 僅於 08 時執行全量備份，或強制執行時觸發
