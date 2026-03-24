@@ -69,7 +69,7 @@ if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" || "$HOUR" == "13" || "$HOUR" ==
 fi
 
 # 2. 其餘生理數據: 僅於 08 時執行全量備份，或強制執行時觸發
-if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08" ]]; then
+if [[ "$FORCE_ALL" == "true" || "$HOUR" == "08"  || "$HOUR" == "23" ]]; then
     echo "❤️ [HEALTH] 執行全量生理健康數據備份 (${YESTERDAY} & ${TODAY})..."
     
     # 定義需要抓取雙日資料的指標 (Daily Metrics)
