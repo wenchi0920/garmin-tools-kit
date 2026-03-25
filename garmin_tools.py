@@ -450,70 +450,77 @@ def process_health_command(args: argparse.Namespace):
                 target_dates = [args.date]
 
             local_items = []
-            for d in target_dates:
-                # 1. 核心健康數據 (health)
-                health_file = os.path.join("data", "health", f"health_{d}.json")
-                item = {"calendarDate": d}
-                if os.path.exists(health_file):
-                    try:
-                        with open(health_file, "r", encoding="utf-8") as f:
-                            cached = json.load(f)
-                            if "data" in cached:
-                                # 支援單日/多日混合結構
-                                h_data = cached["data"]
-                                if isinstance(h_data, list): h_data = h_data[0] # 抓第一筆
-                                item.update(h_data)
-                    except: pass
-                
-                # 2. 睡眠分數 (sleep)
-                sleep_file = os.path.join("data", "sleep", f"sleep_{d}.json")
-                if os.path.exists(sleep_file):
-                    try:
-                        with open(sleep_file, "r", encoding="utf-8") as f:
-                            s_cached = json.load(f)
-                            s_data = s_cached.get("data", {})
-                            if isinstance(s_data, list): s_data = s_data[0]
-                            score = s_data.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
-                            item["sleep_score"] = score
-                    except: pass
+            if getattr(args, "from_file", False):
+                for d in target_dates:
+                    # 1. 核心健康數據 (health)
+                    health_file = os.path.join("data", "health", f"health_{d}.json")
+                    item = {"calendarDate": d}
+                    if os.path.exists(health_file):
+                        try:
+                            with open(health_file, "r", encoding="utf-8") as f:
+                                cached = json.load(f)
+                                if "data" in cached:
+                                    h_data_list = cached["data"]
+                                    if not isinstance(h_data_list, list): h_data_list = [h_data_list]
 
-                # 3. HRV 趨勢 (hrv)
-                hrv_file = os.path.join("data", "hrv", f"hrv_{d}.json")
-                if os.path.exists(hrv_file):
-                    try:
-                        with open(hrv_file, "r", encoding="utf-8") as f:
-                            h_cached = json.load(f)
-                            h_data = h_cached.get("data", {})
-                            if isinstance(h_data, list): h_data = h_data[0]
-                            item["hrv_avg"] = h_data.get("lastNightAvg", "--")
-                    except: pass
+                                    # 嚴格篩選符合該日期的資料
+                                    for h in h_data_list:
+                                        if str(h.get("calendarDate")) == d:
+                                            item.update(h)
+                                            break
+                        except: pass
+                    # 2. 睡眠分數 (sleep)
+                    sleep_file = os.path.join("data", "sleep", f"sleep_{d}.json")
+                    if os.path.exists(sleep_file):
+                        try:
+                            with open(sleep_file, "r", encoding="utf-8") as f:
+                                s_cached = json.load(f)
+                                s_data = s_cached.get("data", {})
+                                if isinstance(s_data, list): s_data = s_data[0]
+                                score = s_data.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
+                                item["sleep_score"] = score
+                        except: pass
 
-                # 4. 血壓 (blood-pressure) - 嘗試尋找包含此日期的範圍檔或單日檔
-                bp_dir = "data/blood-pressure"
-                if os.path.exists(bp_dir):
-                    for f_name in os.listdir(bp_dir):
-                        if d in f_name and f_name.endswith(".json"):
-                            try:
-                                with open(os.path.join(bp_dir, f_name), "r", encoding="utf-8") as f:
-                                    bp_cached = json.load(f)
-                                    summaries = bp_cached.get("data", {}).get("measurementSummaries", [])
-                                    # 抓取該日最後一筆量測
-                                    daily_bp = [s for s in summaries if s.get("calendarDate") == d]
-                                    if daily_bp:
-                                        last_bp = daily_bp[-1]
-                                        item["blood_pressure"] = f"{last_bp.get('systolic')}/{last_bp.get('diastolic')}"
-                            except: pass
-                
-                # 如果核心數據存在，才加入列表
-                if "totalSteps" in item or "restingHeartRate" in item:
-                    local_items.append(item)
+                    # 3. HRV 趨勢 (hrv)
+                    hrv_file = os.path.join("data", "hrv", f"hrv_{d}.json")
+                    if os.path.exists(hrv_file):
+                        try:
+                            with open(hrv_file, "r", encoding="utf-8") as f:
+                                h_cached = json.load(f)
+                                h_data = h_cached.get("data", {})
+                                if isinstance(h_data, list): h_data = h_data[0]
+                                item["hrv_avg"] = h_data.get("lastNightAvg", "--")
+                        except: pass
+
+                    # 4. 血壓 (blood-pressure) - 嘗試尋找包含此日期的範圍檔或單日檔
+                    bp_dir = "data/blood-pressure"
+                    if os.path.exists(bp_dir):
+                        for f_name in os.listdir(bp_dir):
+                            if d in f_name and f_name.endswith(".json"):
+                                try:
+                                    with open(os.path.join(bp_dir, f_name), "r", encoding="utf-8") as f:
+                                        bp_cached = json.load(f)
+                                        summaries = bp_cached.get("data", {}).get("measurementSummaries", [])
+                                        # 抓取該日最後一筆量測
+                                        daily_bp = [s for s in summaries if s.get("calendarDate") == d]
+                                        if daily_bp:
+                                            last_bp = daily_bp[-1]
+                                            item["blood_pressure"] = f"{last_bp.get('systolic')}/{last_bp.get('diastolic')}"
+                                except: pass
+                    
+                    # 如果核心數據存在，才加入列表
+                    if "totalSteps" in item or "restingHeartRate" in item:
+                        local_items.append(item)
 
             if local_items:
                 metric_collection = {"data": local_items}
                 logger.info(f"已從本地快取彙整 {len(local_items)} 筆全方位健康數據。")
             else:
-                # 若無快取，則執行 API 下載
-                logger.info(f"本地快取不足，正在從 API 獲取健康摘要...")
+                # 若無快取或未指定 --from-file，則執行 API 下載
+                if getattr(args, "from_file", False):
+                    logger.info(f"本地快取不足，正在從 API 獲取健康摘要...")
+                else:
+                    logger.info(f"正在從 API 獲取健康摘要...")
                 if args.start_date:
                     data_list = health_client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
                     if data_list: metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
@@ -863,7 +870,7 @@ def main():
             p.add_argument("--from-file", action="store_true", help="優先從本地已下載的檔案讀取數據")
         return p
 
-    add_health_sub(health_subparsers, "summary", "綜合健康摘要")
+    add_health_sub(health_subparsers, "summary", "綜合健康摘要", has_from_file=True)
     add_health_sub(health_subparsers, "sleep", "睡眠數據")
     add_health_sub(health_subparsers, "body-battery", "身體能量指數")
     add_health_sub(health_subparsers, "hrv", "心率變異度 (HRV)", has_detailed=True)
