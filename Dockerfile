@@ -29,8 +29,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 複製其餘專案文件
 COPY . .
 
-# 設定執行權限
-RUN chmod +x /app/backup.sh
-
 # 預設啟動守護排程器 (scheduler.py)
 CMD ["python", "scheduler.py"]
