@@ -7,17 +7,25 @@ Changelog:
 2026-03-25: v1.3.0 - 整合 backup.sh 功能，實作自動化備份引擎，移除 Shell 依賴
 """
 
+import os
+from dotenv import load_dotenv
+
+# --- 配置 (Configurations) ---
+# 取得程式實體路徑，確保無論從何處啟動都能找到 .env
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+# 優先載入 .env 檔案 (本地開發環境)，並允許覆寫環境變數 (override=True)
+load_dotenv(os.path.join(APP_ROOT, ".env"), override=True)
+
+# 如果環境變數中有指定 APP_ROOT，則以此為準 (允許外部覆寫)
+APP_ROOT = os.getenv("APP_ROOT", APP_ROOT)
+
 import time
 import datetime
 import subprocess
 import sys
-import os
 import argparse
 from loguru import logger
 
-# --- 配置 (Configurations) ---
-# 優先讀取環境變數，若無則使用 Docker 預設路徑
-APP_ROOT = os.getenv("APP_ROOT", "/app")
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(APP_ROOT, "data"))
 LOG_DIR = os.path.join(DATA_DIR, "logs")
 GARMIN_TOOLS_PATH = os.path.join(APP_ROOT, "garmin_tools.py")
