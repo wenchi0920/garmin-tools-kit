@@ -6,3 +6,4 @@ tqdm
 tkcalendar
 customtkinter
 python-dotenv
+apscheduler

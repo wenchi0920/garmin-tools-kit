@@ -5,6 +5,7 @@ Changelog:
 2026-03-17: v1.0.0 - 初始版本
 2026-03-17: v1.2.0 - 實作即時日誌串流與持久化檔案日誌
 2026-03-25: v1.3.0 - 整合 backup.sh 功能，實作自動化備份引擎，移除 Shell 依賴
+2026-03-26: v1.4.0 - 遷移至 APScheduler 提升排程穩定性與精確度
 """
 
 import os
@@ -25,6 +26,9 @@ import subprocess
 import sys
 import argparse
 from loguru import logger
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 DATA_DIR = os.getenv("DATA_DIR", os.path.join(APP_ROOT, "data"))
 LOG_DIR = os.path.join(DATA_DIR, "logs")
@@ -145,26 +149,29 @@ def main():
         run_backup_job(force_all=args.force_all)
         return
 
-    target_times = ["08:00", "13:00", "18:00", "23:00"]
     logger.info("🚀 Garmin Tool Kit 守護排程器已啟動...")
-    logger.info(f"📅 預定執行時間: 每天 {', '.join(target_times)}")
+    logger.info("📅 預定執行時間: 每天 08:00, 13:00, 18:00, 23:00")
     
-    while True:
-        update_heartbeat()
-        now = datetime.datetime.now()
-        current_time = now.strftime("%H:%M")
-        
-        if current_time in target_times:
-            run_backup_job(force_all=args.force_all)
-            time.sleep(61)
-        
-        time.sleep(30)
+    scheduler = BlockingScheduler()
+    
+    # 每 30 秒更新一次心跳
+    scheduler.add_job(update_heartbeat, IntervalTrigger(seconds=30))
+    
+    # 每天 08, 13, 18, 23 時執行備份
+    # 注意：APScheduler 的 hour='8,13,18,23' 會在每小時的 00 分 00 秒觸發
+    scheduler.add_job(
+        run_backup_job, 
+        CronTrigger(hour='8,13,18,23', minute=0, second=0),
+        kwargs={'force_all': args.force_all}
+    )
 
-if __name__ == "__main__":
     try:
-        main()
-    except KeyboardInterrupt:
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
         logger.info("👋 排程器手動關閉。")
     except Exception as e:
         logger.critical(f"💀 致命錯誤: {e}")
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
