@@ -21,6 +21,7 @@ Changelog:
 2026-03-23: 1.4.6 - 修正 health summary 表格顯示時，因部分數據為 None 導致的型別錯誤。
 2026-03-23: 1.4.7 - 優化表格顯示格式，確保所有 None 值統一顯示為 --。
 2026-03-26: 1.4.8 - 優化 health summary 邏輯，支援從本地所有 JSON 檔案彙整數據，解決範圍抓取導致的漏報問題。
+2026-03-26: 1.4.9 - 強化 health summary 容錯機制 (Null Check) 並新增讀取檔案日誌 (Debug Level)。
 """
 import argparse
 import getpass
@@ -42,7 +43,7 @@ from client import (
 )
 from models.raceEventModel import RaceEventModel
 
-VERSION = "1.4.8"
+VERSION = "1.4.9"
 
 
 # ==============================================================================
@@ -633,22 +634,25 @@ def execute_combined_summary(args: argparse.Namespace):
     def scan_and_index(directory: str, index_logic):
         if not os.path.exists(directory):
             return
-        for filename in os.listdir(directory):
-            if not filename.endswith(".json"):
-                continue
+        files = [f for f in os.listdir(directory) if f.endswith(".json")]
+        for filename in sorted(files):
             file_path = os.path.join(directory, filename)
+            logger.debug(f"🔍 正在讀取本地快取: {file_path}")
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = json.load(f)
-                    index_logic(content)
+                    if content:
+                        index_logic(content)
             except Exception as e:
-                logger.trace(f"讀取檔案 {file_path} 失敗: {e}")
+                logger.warning(f"⚠️ 讀取檔案 {file_path} 失敗: {e}")
 
     # 1. 核心健康數據 (health)
     def index_health(content):
+        if not content: return
         data_list = content.get("data", [])
         if not isinstance(data_list, list): data_list = [data_list]
         for h in data_list:
+            if not h: continue
             d = h.get("calendarDate")
             if d in target_dates:
                 if d not in data_map: data_map[d] = {"calendarDate": d}
@@ -658,23 +662,28 @@ def execute_combined_summary(args: argparse.Namespace):
 
     # 2. 睡眠分數 (sleep)
     def index_sleep(content):
+        if not content: return
         data_list = content.get("data", [])
         if not isinstance(data_list, list): data_list = [data_list]
         for s in data_list:
+            if not s: continue
             dto = s.get("dailySleepDTO", {})
+            if not dto: continue
             d = dto.get("calendarDate")
             if d in target_dates:
                 if d not in data_map: data_map[d] = {"calendarDate": d}
-                score = s.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
+                score = dto.get("sleepScores", {}).get("overall", {}).get("value", "--")
                 data_map[d]["sleep_score"] = score
 
     scan_and_index("data/sleep", index_sleep)
 
     # 3. HRV 趨勢 (hrv)
     def index_hrv(content):
+        if not content: return
         data_list = content.get("data", [])
         if not isinstance(data_list, list): data_list = [data_list]
         for h in data_list:
+            if not h: continue
             d = h.get("calendarDate")
             if d in target_dates:
                 if d not in data_map: data_map[d] = {"calendarDate": d}
@@ -684,8 +693,10 @@ def execute_combined_summary(args: argparse.Namespace):
 
     # 4. 血壓 (blood-pressure)
     def index_bp(content):
+        if not content: return
         summaries = content.get("data", {}).get("measurementSummaries", [])
         for s in summaries:
+            if not s: continue
             d = s.get("calendarDate")
             if d in target_dates:
                 if d not in data_map: data_map[d] = {"calendarDate": d}
