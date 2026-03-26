@@ -20,6 +20,7 @@ Changelog:
 2026-03-23: 1.4.5 - 優化 health summary 表格顯示，新增睡眠分數、HRV 與血壓欄位，並預設顯示 7 天資料。
 2026-03-23: 1.4.6 - 修正 health summary 表格顯示時，因部分數據為 None 導致的型別錯誤。
 2026-03-23: 1.4.7 - 優化表格顯示格式，確保所有 None 值統一顯示為 --。
+2026-03-26: 1.4.8 - 優化 health summary 邏輯，支援從本地所有 JSON 檔案彙整數據，解決範圍抓取導致的漏報問題。
 """
 import argparse
 import getpass
@@ -41,7 +42,7 @@ from client import (
 )
 from models.raceEventModel import RaceEventModel
 
-VERSION = "1.4.7"
+VERSION = "1.4.8"
 
 
 # ==============================================================================
@@ -625,64 +626,78 @@ def execute_combined_summary(args: argparse.Namespace):
         delta = (end_date - start_date).days + 1
         target_dates = [(start_date + timedelta(days=i)).isoformat() for i in range(delta)]
 
+    # 建立日期索引的資料字典，避免多次讀取檔案
+    # data_map: Dict[date_str, Dict[metric_name, value]]
+    data_map = {d: {"calendarDate": d} for d in target_dates}
+
+    def scan_and_index(directory: str, index_logic):
+        if not os.path.exists(directory):
+            return
+        for filename in os.listdir(directory):
+            if not filename.endswith(".json"):
+                continue
+            file_path = os.path.join(directory, filename)
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = json.load(f)
+                    index_logic(content)
+            except Exception as e:
+                logger.trace(f"讀取檔案 {file_path} 失敗: {e}")
+
+    # 1. 核心健康數據 (health)
+    def index_health(content):
+        data_list = content.get("data", [])
+        if not isinstance(data_list, list): data_list = [data_list]
+        for h in data_list:
+            d = h.get("calendarDate")
+            if d in target_dates:
+                if d not in data_map: data_map[d] = {"calendarDate": d}
+                data_map[d].update(h)
+
+    scan_and_index("data/health", index_health)
+
+    # 2. 睡眠分數 (sleep)
+    def index_sleep(content):
+        data_list = content.get("data", [])
+        if not isinstance(data_list, list): data_list = [data_list]
+        for s in data_list:
+            dto = s.get("dailySleepDTO", {})
+            d = dto.get("calendarDate")
+            if d in target_dates:
+                if d not in data_map: data_map[d] = {"calendarDate": d}
+                score = s.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
+                data_map[d]["sleep_score"] = score
+
+    scan_and_index("data/sleep", index_sleep)
+
+    # 3. HRV 趨勢 (hrv)
+    def index_hrv(content):
+        data_list = content.get("data", [])
+        if not isinstance(data_list, list): data_list = [data_list]
+        for h in data_list:
+            d = h.get("calendarDate")
+            if d in target_dates:
+                if d not in data_map: data_map[d] = {"calendarDate": d}
+                data_map[d]["hrv_avg"] = h.get("lastNightAvg", "--")
+
+    scan_and_index("data/hrv", index_hrv)
+
+    # 4. 血壓 (blood-pressure)
+    def index_bp(content):
+        summaries = content.get("data", {}).get("measurementSummaries", [])
+        for s in summaries:
+            d = s.get("calendarDate")
+            if d in target_dates:
+                if d not in data_map: data_map[d] = {"calendarDate": d}
+                data_map[d]["blood_pressure"] = f"{s.get('systolic')}/{s.get('diastolic')}"
+
+    scan_and_index("data/blood-pressure", index_bp)
+
     local_items = []
     logger.info(f"正在從本地目錄彙整 {len(target_dates)} 天的健康資料 (今天往前推算)...")
 
     for d in target_dates:
-        item = {"calendarDate": d}
-
-        # 1. 核心健康數據 (health)
-        health_file = os.path.join("data", "health", f"health_{d}.json")
-        if os.path.exists(health_file):
-            try:
-                with open(health_file, "r", encoding="utf-8") as f:
-                    cached = json.load(f)
-                    h_data_list = cached.get("data", [])
-                    if not isinstance(h_data_list, list): h_data_list = [h_data_list]
-                    for h in h_data_list:
-                        if str(h.get("calendarDate")) == d:
-                            item.update(h)
-                            break
-            except: pass
-
-        # 2. 睡眠分數 (sleep)
-        sleep_file = os.path.join("data", "sleep", f"sleep_{d}.json")
-        if os.path.exists(sleep_file):
-            try:
-                with open(sleep_file, "r", encoding="utf-8") as f:
-                    s_cached = json.load(f)
-                    s_data = s_cached.get("data", {})
-                    if isinstance(s_data, list): s_data = s_data[0]
-                    score = s_data.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
-                    item["sleep_score"] = score
-            except: pass
-
-        # 3. HRV 趨勢 (hrv)
-        hrv_file = os.path.join("data", "hrv", f"hrv_{d}.json")
-        if os.path.exists(hrv_file):
-            try:
-                with open(hrv_file, "r", encoding="utf-8") as f:
-                    h_cached = json.load(f)
-                    h_data = h_cached.get("data", {})
-                    if isinstance(h_data, list): h_data = h_data[0]
-                    item["hrv_avg"] = h_data.get("lastNightAvg", "--")
-            except: pass
-
-        # 4. 血壓 (blood-pressure)
-        bp_dir = "data/blood-pressure"
-        if os.path.exists(bp_dir):
-            for f_name in os.listdir(bp_dir):
-                if d in f_name and f_name.endswith(".json"):
-                    try:
-                        with open(os.path.join(bp_dir, f_name), "r", encoding="utf-8") as f:
-                            bp_cached = json.load(f)
-                            summaries = bp_cached.get("data", {}).get("measurementSummaries", [])
-                            daily_bp = [s for s in summaries if s.get("calendarDate") == d]
-                            if daily_bp:
-                                last_bp = daily_bp[-1]
-                                item["blood_pressure"] = f"{last_bp.get('systolic')}/{last_bp.get('diastolic')}"
-                    except: pass
-
+        item = data_map[d]
         # 僅在有核心數據時才加入列表
         if "totalSteps" in item or "restingHeartRate" in item:
             local_items.append(item)
