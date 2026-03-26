@@ -6,6 +6,7 @@ Changelog:
 2026-03-17: v1.2.0 - 實作即時日誌串流與持久化檔案日誌
 2026-03-25: v1.3.0 - 整合 backup.sh 功能，實作自動化備份引擎，移除 Shell 依賴
 2026-03-26: v1.4.0 - 遷移至 APScheduler 提升排程穩定性與精確度
+2026-03-26: v1.5.0 - 實作 SIGHUP 信號處理與自我重啟機制 (Self-Restart)
 """
 
 import os
@@ -25,6 +26,7 @@ import datetime
 import subprocess
 import sys
 import argparse
+import signal
 from loguru import logger
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -41,6 +43,31 @@ LOG_FILE_PATTERN = os.path.join(LOG_DIR, "backup_{time:YYYY-MM-DD}.log")
 logger.remove()
 logger.add(sys.stdout, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>", colorize=True)
 logger.add(LOG_FILE_PATTERN, format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}", rotation="00:00", retention="30 days", compression="zip")
+
+def restart_program():
+    """
+    自我重啟排程器 (Self-Restart)
+    利用 os.execv 取代當前進程，保留原本的 PID，並重新載入 Python 解釋器與環境
+    """
+    logger.warning("♻️  正在觸發自我重啟機制 (Self-Restart)...")
+    
+    # 執行 os.execv 重新啟動
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
+
+def signal_handler(sig, frame):
+    """
+    處理作業系統信號
+    SIGHUP: 觸發重啟
+    SIGTERM/SIGINT: 正常退出
+    """
+    if sig == signal.SIGHUP:
+        logger.info("📩 接收到 SIGHUP 信號，準備重啟...")
+        restart_program()
+    elif sig in [signal.SIGINT, signal.SIGTERM]:
+        logger.info(f"🛑 接收到 {signal.Signals(sig).name} 信號，正在關閉排程器...")
+        # 此處不使用 sys.exit(0) 是為了讓 BlockingScheduler 能正常捕捉並關閉
+        raise SystemExit
 
 def execute_cmd(args):
     """執行命令並即時記錄輸出"""
@@ -143,7 +170,18 @@ def main():
     parser = argparse.ArgumentParser(description="Garmin Tool Kit Scheduler")
     parser.add_argument("-d", "--force-all", action="store_true", help="強制執行全量備份")
     parser.add_argument("--now", action="store_true", help="立即執行一次後結束")
+    parser.add_argument("--restart", action="store_true", help="觸發自我重啟 (Self-Restart)")
     args = parser.parse_args()
+
+    # 模擬或手動觸發重啟
+    if args.restart:
+        restart_program()
+        return
+
+    # 註冊信號處理器
+    signal.signal(signal.SIGHUP, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     if args.now:
         run_backup_job(force_all=args.force_all)
@@ -158,7 +196,6 @@ def main():
     scheduler.add_job(update_heartbeat, IntervalTrigger(seconds=30))
     
     # 每天 08, 13, 18, 23 時執行備份
-    # 注意：APScheduler 的 hour='8,13,18,23' 會在每小時的 00 分 00 秒觸發
     scheduler.add_job(
         run_backup_job, 
         CronTrigger(hour='8,13,18,23', minute=0, second=0),
@@ -168,10 +205,11 @@ def main():
     try:
         scheduler.start()
     except (KeyboardInterrupt, SystemExit):
-        logger.info("👋 排程器手動關閉。")
+        logger.info("👋 排程器已關閉。")
     except Exception as e:
         logger.critical(f"💀 致命錯誤: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
