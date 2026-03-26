@@ -672,7 +672,9 @@ def execute_combined_summary(args: argparse.Namespace):
             d = dto.get("calendarDate")
             if d in target_dates:
                 if d not in data_map: data_map[d] = {"calendarDate": d}
-                score = dto.get("sleepScores", {}).get("overall", {}).get("value", "--")
+                # BUG FIX: 處理 sleepScores 可能為 None 的情況
+                scores = dto.get("sleepScores") or {}
+                score = scores.get("overall", {}).get("value", "--")
                 data_map[d]["sleep_score"] = score
 
     scan_and_index("data/sleep", index_sleep)
@@ -680,10 +682,17 @@ def execute_combined_summary(args: argparse.Namespace):
     # 3. HRV 趨勢 (hrv)
     def index_hrv(content):
         if not content: return
-        data_list = content.get("data", [])
+        data = content.get("data") or {}
+        # HRV JSON 可能包含單一物件或列表，且單一物件中數據常在 hrvSummary 下
+        if isinstance(data, dict):
+            data_list = [data.get("hrvSummary") or data]
+        else:
+            data_list = data
+            
         if not isinstance(data_list, list): data_list = [data_list]
+        
         for h in data_list:
-            if not h: continue
+            if not h or not isinstance(h, dict): continue
             d = h.get("calendarDate")
             if d in target_dates:
                 if d not in data_map: data_map[d] = {"calendarDate": d}
@@ -694,7 +703,8 @@ def execute_combined_summary(args: argparse.Namespace):
     # 4. 血壓 (blood-pressure)
     def index_bp(content):
         if not content: return
-        summaries = content.get("data", {}).get("measurementSummaries", [])
+        # BUG FIX: 處理 data 可能為 None 的情況
+        summaries = (content.get("data") or {}).get("measurementSummaries", [])
         for s in summaries:
             if not s: continue
             d = s.get("calendarDate")
@@ -709,8 +719,9 @@ def execute_combined_summary(args: argparse.Namespace):
 
     for d in target_dates:
         item = data_map[d]
-        # 僅在有核心數據時才加入列表
-        if "totalSteps" in item or "restingHeartRate" in item:
+        # BUG FIX: 放寬判定標準，只要有任一項數據 (步數, 心率, 睡眠, HRV, 血壓) 就納入顯示
+        relevant_keys = ["totalSteps", "restingHeartRate", "sleep_score", "hrv_avg", "blood_pressure"]
+        if any(k in item for k in relevant_keys):
             local_items.append(item)
 
     if not local_items:
@@ -868,3 +879,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
