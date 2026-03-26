@@ -333,14 +333,7 @@ def display_health_summary(cmd: str, metric_collection: Dict[str, Any], args: ar
     if not isinstance(items, list):
         items = [items]
 
-    # 特殊處理 summary 表格顯示
-    if cmd == "summary" and getattr(args, "health_command", None) == "summary":
-        output_file = getattr(args, "output", None)
-        table_file = output_file if output_file and output_file.endswith(".txt") else None
-        display_health_table(items, output_file=table_file)
-        return
-
-    if cmd in ["summary", "stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
+    if cmd in ["stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
         for entry in items:
             if not isinstance(entry, dict): continue
             print("-" * 60)
@@ -424,111 +417,7 @@ def process_health_command(args: argparse.Namespace):
     
     # 根據子命令分流處理
     try:
-        # 特殊處理 health summary: 支援 -d N (天數) 與 優先讀取本地檔案
-        if cmd == "summary":
-            # 預設顯示 7 天 (如果使用者沒帶 -d, -sd, -ed)
-            is_range_specified = args.start_date or args.end_date
-            
-            try:
-                days = int(args.date) if args.date and args.date.isdigit() else (7 if not is_range_specified else 0)
-                if days > 0:
-                    # 如果是數字，視為「過去 N 天」
-                    args.start_date = (date.today() - timedelta(days=days-1)).isoformat()
-                    args.end_date = date.today().isoformat()
-                    args.summary = True # 強制表格顯示
-            except ValueError:
-                pass
-
-            # 日期範圍推算
-            target_dates = []
-            if args.start_date:
-                start = date.fromisoformat(args.start_date)
-                end = date.fromisoformat(args.end_date or date.today().isoformat())
-                delta = (end - start).days + 1
-                target_dates = [(start + timedelta(days=i)).isoformat() for i in range(delta)]
-            else:
-                target_dates = [args.date]
-
-            local_items = []
-            if getattr(args, "from_file", False):
-                for d in target_dates:
-                    # 1. 核心健康數據 (health)
-                    health_file = os.path.join("data", "health", f"health_{d}.json")
-                    item = {"calendarDate": d}
-                    if os.path.exists(health_file):
-                        try:
-                            with open(health_file, "r", encoding="utf-8") as f:
-                                cached = json.load(f)
-                                if "data" in cached:
-                                    h_data_list = cached["data"]
-                                    if not isinstance(h_data_list, list): h_data_list = [h_data_list]
-
-                                    # 嚴格篩選符合該日期的資料
-                                    for h in h_data_list:
-                                        if str(h.get("calendarDate")) == d:
-                                            item.update(h)
-                                            break
-                        except: pass
-                    # 2. 睡眠分數 (sleep)
-                    sleep_file = os.path.join("data", "sleep", f"sleep_{d}.json")
-                    if os.path.exists(sleep_file):
-                        try:
-                            with open(sleep_file, "r", encoding="utf-8") as f:
-                                s_cached = json.load(f)
-                                s_data = s_cached.get("data", {})
-                                if isinstance(s_data, list): s_data = s_data[0]
-                                score = s_data.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
-                                item["sleep_score"] = score
-                        except: pass
-
-                    # 3. HRV 趨勢 (hrv)
-                    hrv_file = os.path.join("data", "hrv", f"hrv_{d}.json")
-                    if os.path.exists(hrv_file):
-                        try:
-                            with open(hrv_file, "r", encoding="utf-8") as f:
-                                h_cached = json.load(f)
-                                h_data = h_cached.get("data", {})
-                                if isinstance(h_data, list): h_data = h_data[0]
-                                item["hrv_avg"] = h_data.get("lastNightAvg", "--")
-                        except: pass
-
-                    # 4. 血壓 (blood-pressure) - 嘗試尋找包含此日期的範圍檔或單日檔
-                    bp_dir = "data/blood-pressure"
-                    if os.path.exists(bp_dir):
-                        for f_name in os.listdir(bp_dir):
-                            if d in f_name and f_name.endswith(".json"):
-                                try:
-                                    with open(os.path.join(bp_dir, f_name), "r", encoding="utf-8") as f:
-                                        bp_cached = json.load(f)
-                                        summaries = bp_cached.get("data", {}).get("measurementSummaries", [])
-                                        # 抓取該日最後一筆量測
-                                        daily_bp = [s for s in summaries if s.get("calendarDate") == d]
-                                        if daily_bp:
-                                            last_bp = daily_bp[-1]
-                                            item["blood_pressure"] = f"{last_bp.get('systolic')}/{last_bp.get('diastolic')}"
-                                except: pass
-                    
-                    # 如果核心數據存在，才加入列表
-                    if "totalSteps" in item or "restingHeartRate" in item:
-                        local_items.append(item)
-
-            if local_items:
-                metric_collection = {"data": local_items}
-                logger.info(f"已從本地快取彙整 {len(local_items)} 筆全方位健康數據。")
-            else:
-                # 若無快取或未指定 --from-file，則執行 API 下載
-                if getattr(args, "from_file", False):
-                    logger.info(f"本地快取不足，正在從 API 獲取健康摘要...")
-                else:
-                    logger.info(f"正在從 API 獲取健康摘要...")
-                if args.start_date:
-                    data_list = health_client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
-                    if data_list: metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
-                else:
-                    data = health_client.get_daily_summary(args.date)
-                    if data: metric_collection = {"data": data.model_dump(mode="json")}
-
-        elif cmd in ["stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
+        if cmd == "health" or cmd in ["stress", "heart-rate", "steps", "calories", "spo2", "respiration"]:
             if args.start_date:
                 data_list = health_client.get_daily_summaries(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
                 if data_list: metric_collection = {"data": [h.model_dump(mode="json") for h in data_list]}
@@ -723,65 +612,87 @@ def fetch_race_calendar(args: argparse.Namespace):
 
 
 def execute_combined_summary(args: argparse.Namespace):
-    """彙整指定日期所有健康數據摘要，優先使用檔案資料，不存檔 (符合 garmin_tools.md 規範)"""
-    target_date = args.date or date.today().isoformat()
-    logger.info(f"正在彙整全方位健康數據摘要 ({target_date})...")
-    print("\n" + "=" * 60)
-    print(f"🚀 Garmin Connect 數據彙整: {target_date}")
-    print("=" * 60)
-    
-    # 定義要顯示的所有核心指標
-    sub_cmds = [
-        "summary", "sleep", "body-battery", "hrv", "training-readiness", 
-        "training-status", "vo2max", "weight", "max-hr", "fitness-age"
-    ]
+    """處理頂層 summary 命令：僅從本地快取彙整資料，不呼叫 API (符合使用者最新規範)"""
+    target_dates = []
 
-    class MockArgs(argparse.Namespace):
-        def __init__(self, **entries):
-            self.__dict__.update(entries)
-            self.verbosity = getattr(args, "verbosity", 0)
+    if getattr(args, "date", None):
+        target_dates = [args.date]
+    else:
+        # 計算過去 N 天 (含今天)
+        days = getattr(args, "days", 7)
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days-1)
+        delta = (end_date - start_date).days + 1
+        target_dates = [(start_date + timedelta(days=i)).isoformat() for i in range(delta)]
 
-    for cmd in sub_cmds:
-        # 推算路徑
-        if cmd == "summary":
-            target_file = f"data/health/health_{target_date}.json"
-        elif cmd == "body-battery":
-            target_file = f"data/body-battery_{target_date[:4]}/body-battery_{target_date}.json"
-        else:
-            target_file = f"data/{cmd}/{cmd}_{target_date}.json"
+    local_items = []
+    logger.info(f"正在從本地目錄彙整 {len(target_dates)} 天的健康資料 (今天往前推算)...")
 
-        if os.path.exists(target_file):
-            logger.debug(f"載入本地快取: {target_file}")
+    for d in target_dates:
+        item = {"calendarDate": d}
+
+        # 1. 核心健康數據 (health)
+        health_file = os.path.join("data", "health", f"health_{d}.json")
+        if os.path.exists(health_file):
             try:
-                with open(target_file, "r", encoding="utf-8") as f:
-                    metric_collection = json.load(f)
-                    display_health_summary(cmd, metric_collection, args)
-            except Exception as e:
-                logger.warning(f"讀取快取檔案失敗 {target_file}: {e}")
-        else:
-            # 無檔案，執行下載並顯示 (但不設定 output，故不會儲存新的 combined file)
-            # 注意：process_health_command 內部的 download 可能會存檔到個別目錄，
-            # 但 execute_combined_summary 本身不會儲存一份彙整過的 JSON。
-            mock_args = MockArgs(
-                health_command=cmd,
-                date=target_date,
-                summary=True,
-                output=None,
-                session=args.session,
-                username=args.username,
-                password=args.password,
-                env_file=args.env_file,
-                over_write=args.over_write,
-                progress=args.progress,
-                start_date=None,
-                end_date=None,
-                detailed=False
-            )
-            process_health_command(mock_args)
-    
-    print("\n" + "=" * 60)
-    logger.success("摘要彙整完成。")
+                with open(health_file, "r", encoding="utf-8") as f:
+                    cached = json.load(f)
+                    h_data_list = cached.get("data", [])
+                    if not isinstance(h_data_list, list): h_data_list = [h_data_list]
+                    for h in h_data_list:
+                        if str(h.get("calendarDate")) == d:
+                            item.update(h)
+                            break
+            except: pass
 
+        # 2. 睡眠分數 (sleep)
+        sleep_file = os.path.join("data", "sleep", f"sleep_{d}.json")
+        if os.path.exists(sleep_file):
+            try:
+                with open(sleep_file, "r", encoding="utf-8") as f:
+                    s_cached = json.load(f)
+                    s_data = s_cached.get("data", {})
+                    if isinstance(s_data, list): s_data = s_data[0]
+                    score = s_data.get("dailySleepDTO", {}).get("sleepScores", {}).get("overall", {}).get("value", "--")
+                    item["sleep_score"] = score
+            except: pass
+
+        # 3. HRV 趨勢 (hrv)
+        hrv_file = os.path.join("data", "hrv", f"hrv_{d}.json")
+        if os.path.exists(hrv_file):
+            try:
+                with open(hrv_file, "r", encoding="utf-8") as f:
+                    h_cached = json.load(f)
+                    h_data = h_cached.get("data", {})
+                    if isinstance(h_data, list): h_data = h_data[0]
+                    item["hrv_avg"] = h_data.get("lastNightAvg", "--")
+            except: pass
+
+        # 4. 血壓 (blood-pressure)
+        bp_dir = "data/blood-pressure"
+        if os.path.exists(bp_dir):
+            for f_name in os.listdir(bp_dir):
+                if d in f_name and f_name.endswith(".json"):
+                    try:
+                        with open(os.path.join(bp_dir, f_name), "r", encoding="utf-8") as f:
+                            bp_cached = json.load(f)
+                            summaries = bp_cached.get("data", {}).get("measurementSummaries", [])
+                            daily_bp = [s for s in summaries if s.get("calendarDate") == d]
+                            if daily_bp:
+                                last_bp = daily_bp[-1]
+                                item["blood_pressure"] = f"{last_bp.get('systolic')}/{last_bp.get('diastolic')}"
+                    except: pass
+
+        # 僅在有核心數據時才加入列表
+        if "totalSteps" in item or "restingHeartRate" in item:
+            local_items.append(item)
+
+    if not local_items:
+        logger.warning("未找到任何本地健康數據快取。")
+        return
+
+    # 顯示表格並存檔
+    display_health_table(local_items, output_file=getattr(args, "output", None))
 
 # ==============================================================================
 # 全域常數與對應處理函式 (Constants & Command Handlers)
@@ -844,9 +755,11 @@ def main():
     race_parser.add_argument("--summary", action="store_true")
     race_parser.add_argument("-o", "--output")
 
-    # Summary (Standalone)
-    summary_parser = subparsers.add_parser("summary", help="綜合文字摘要 (優先讀取本地資料)")
-    summary_parser.add_argument("-d", "--date", default=date.today().isoformat(), help="指定日期 (YYYY-MM-DD)")
+    # Summary (Standalone) - 重新定義為全域綜合摘要
+    summary_parser = subparsers.add_parser("summary", help="綜合文字摘要 (僅讀取本地資料，不呼叫 API)")
+    summary_parser.add_argument("-d", "--days", type=int, default=7, help="顯示從今天往前推算的天數 (預設 7 天)")
+    summary_parser.add_argument("-o", "--output", help="將摘要存儲至指定檔案 (.txt)")
+    summary_parser.add_argument("--date", help="指定特定日期 (YYYY-MM-DD)，若提供則忽略 -d")
 
     # Health Subparsers
     health_parser = subparsers.add_parser("health", help="每日健康數據管理，包含步數、心率、能量、壓力、訓練指標等")
@@ -870,7 +783,7 @@ def main():
             p.add_argument("--from-file", action="store_true", help="優先從本地已下載的檔案讀取數據")
         return p
 
-    add_health_sub(health_subparsers, "summary", "綜合健康摘要", has_from_file=True)
+    add_health_sub(health_subparsers, "health", "基礎健康摘要 (步數、心率等)")
     add_health_sub(health_subparsers, "sleep", "睡眠數據")
     add_health_sub(health_subparsers, "body-battery", "身體能量指數")
     add_health_sub(health_subparsers, "hrv", "心率變異度 (HRV)", has_detailed=True)

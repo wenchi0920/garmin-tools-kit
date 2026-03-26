@@ -87,15 +87,16 @@ def run_backup_job(force_all=False):
         logger.info("📦 [FIT] 備份活動數據 (雙日)...")
         execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "activity", "--start_date", yesterday, "--end_date", today, "--format", "original", "--originaltime"])
 
-        logger.info("📊 [SUMMARY] 備份綜合摘要 (7天)...")
-        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "health", "summary", "-d", "7", "--from-file", "-o", "data/health/report.txt"])
+        logger.info("📊 [SUMMARY] 產生全方位健康摘要 (7天)...")
+        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "summary", "-d", "7", "-o", "data/health/health.txt"])
 
     # 2. [HEALTH] 於 08, 23 時執行全量生理數據備份，或強制執行
     if force_all or hour in [8, 23]:
         logger.info("❤️ [HEALTH] 執行全量生理健康數據備份...")
         
         # 雙日指標 (Daily Metrics)
-        metrics = ["summary", "sleep", "body-battery", "hrv", "weight", "vo2max", "training-status", "stress", "heart-rate", "steps", "calories", "training-readiness", "spo2", "respiration", "hydration"]
+        # 注意：此處需包含 "health" 子命令來抓取核心數據 (steps, resting HR 等)，供 summary 命令使用
+        metrics = ["health", "sleep", "body-battery", "hrv", "weight", "vo2max", "training-status", "stress", "heart-rate", "steps", "calories", "training-readiness", "spo2", "respiration", "hydration"]
         for metric in metrics:
             logger.info(f"   -> 指標備份: {metric}...")
             base_args = [python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write", "health", metric]
