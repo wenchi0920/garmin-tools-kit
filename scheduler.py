@@ -40,9 +40,17 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 # 配置 Loguru
 LOG_FILE_PATTERN = os.path.join(LOG_DIR, "backup_{time:YYYY-MM-DD}.log")
+EXEC_LOG_FILE = os.path.join(LOG_DIR, "garmin_tools_exec.log")
+
 logger.remove()
+# 標準輸出 (控制台)
 logger.add(sys.stdout, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{message}</cyan>", colorize=True)
+# 全量備份日誌 (按日旋轉)
 logger.add(LOG_FILE_PATTERN, format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}", rotation="00:00", retention="30 days", compression="zip")
+# 專屬執行日誌 (僅保留命令輸出，便於 Debug)
+logger.add(EXEC_LOG_FILE, format="{time:YYYY-MM-DD HH:mm:ss} | {message}", 
+           filter=lambda record: "[CMD]" in record["message"] or record["message"].startswith("  "), 
+           rotation="10 MB", retention="7 days")
 
 def restart_program():
     """
