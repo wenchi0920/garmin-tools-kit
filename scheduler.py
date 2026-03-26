@@ -52,30 +52,6 @@ logger.add(EXEC_LOG_FILE, format="{time:YYYY-MM-DD HH:mm:ss} | {message}",
            filter=lambda record: "[CMD]" in record["message"] or record["message"].startswith("  "), 
            rotation="10 MB", retention="7 days")
 
-def restart_program():
-    """
-    自我重啟排程器 (Self-Restart)
-    利用 os.execv 取代當前進程，保留原本的 PID，並重新載入 Python 解釋器與環境
-    """
-    logger.warning("♻️  正在觸發自我重啟機制 (Self-Restart)...")
-    
-    # 執行 os.execv 重新啟動
-    python = sys.executable
-    os.execl(python, python, *sys.argv)
-
-def signal_handler(sig, frame):
-    """
-    處理作業系統信號
-    SIGHUP: 觸發重啟
-    SIGTERM/SIGINT: 正常退出
-    """
-    if sig == signal.SIGHUP:
-        logger.info("📩 接收到 SIGHUP 信號，準備重啟...")
-        restart_program()
-    elif sig in [signal.SIGINT, signal.SIGTERM]:
-        logger.info(f"🛑 接收到 {signal.Signals(sig).name} 信號，正在關閉排程器...")
-        # 此處不使用 sys.exit(0) 是為了讓 BlockingScheduler 能正常捕捉並關閉
-        raise SystemExit
 
 def execute_cmd(args):
     """執行命令並即時記錄輸出"""
@@ -178,18 +154,7 @@ def main():
     parser = argparse.ArgumentParser(description="Garmin Tool Kit Scheduler")
     parser.add_argument("-d", "--force-all", action="store_true", help="強制執行全量備份")
     parser.add_argument("--now", action="store_true", help="立即執行一次後結束")
-    parser.add_argument("--restart", action="store_true", help="觸發自我重啟 (Self-Restart)")
     args = parser.parse_args()
-
-    # 模擬或手動觸發重啟
-    if args.restart:
-        restart_program()
-        return
-
-    # 註冊信號處理器
-    signal.signal(signal.SIGHUP, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
 
     if args.now:
         run_backup_job(force_all=args.force_all)
