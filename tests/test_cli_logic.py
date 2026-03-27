@@ -6,7 +6,7 @@ import sys
 
 # Ensure we can import garmin_tools
 sys.path.append(".")
-from garmin_tools import resolve_user_auth, load_env_file
+from core.utils import resolve_user_auth, load_env_file
 
 def test_load_env_file(tmp_path):
     env_file = tmp_path / ".env.test"

@@ -43,7 +43,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
-nosetests.xml
+nose.xml
 coverage.xml
 *.cover
 *.py.cover
@@ -210,12 +210,12 @@ __marimo__/
 .garth/
 .idea/
 data/
-test_*.py
+
 .env
 *.md
 test_output
 test_data
 test_suite_workspace
-test_*
-tests
+
+
 *.bak
