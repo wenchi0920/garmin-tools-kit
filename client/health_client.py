@@ -79,16 +79,42 @@ class HealthClient(Client):
             
         return results
 
-    def get_training_readiness(self, calendar_date: Union[str, date]) -> Optional[dict]:
+    def get_training_readiness(self, calendar_date: Union[str, date]) -> Optional[Union[dict, list]]:
         """Get Training Readiness for a specific date."""
         if isinstance(calendar_date, date): date_str = calendar_date.isoformat()
         else: date_str = calendar_date
         logger.debug(f"正在獲取訓練完備度: {date_str}")
         try:
-            return garth.client.connectapi(f"/usersummary-service/usersummary/trainingReadiness/{date_str}")
+            # Correct endpoint from python-garminconnect: /metrics-service/metrics/trainingreadiness/<date>
+            return garth.client.connectapi(f"/metrics-service/metrics/trainingreadiness/{date_str}")
         except Exception as e:
             logger.error(f"獲取訓練完備度失敗: {e}")
             return None
+
+    def get_training_readiness_range(self, start_date: Union[str, date], end_date: Union[str, date], show_progress: bool = False) -> List[dict]:
+        """Get Training Readiness for a date range."""
+        if isinstance(start_date, str): start_date = date.fromisoformat(start_date)
+        if isinstance(end_date, str): end_date = date.fromisoformat(end_date)
+            
+        results = []
+        total_days = (end_date - start_date).days + 1
+        
+        iterable = range(total_days)
+        if show_progress:
+            from tqdm import tqdm
+            iterable = tqdm(iterable, desc="獲取訓練完備度", unit="天")
+            
+        for i in iterable:
+            current_date = start_date + timedelta(days=i)
+            data = self.get_training_readiness(current_date)
+            if data:
+                if isinstance(data, list):
+                    results.extend(data)
+                else:
+                    results.append(data)
+            self._random_delay()
+            
+        return results
 
     def get_fitness_age(self) -> Optional[dict]:
         """Get Fitness Age report."""

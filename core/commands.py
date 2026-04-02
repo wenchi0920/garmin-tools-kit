@@ -243,7 +243,12 @@ def display_health_summary(cmd: str, metric_collection: Dict[str, Any], args: ar
     elif cmd == "training-readiness":
         for d in items:
             if not isinstance(d, dict): continue
-            print(f"🚦 訓練完備度: {d.get('score')} ({d.get('status')}) | 建議: {d.get('feedback')}")
+            calendar_date = d.get('calendarDate', '--')
+            score = d.get('score', '--')
+            # Handle possible variations in field names
+            level = d.get('level') or d.get('trainingReadinessStatus') or d.get('status') or '--'
+            feedback = d.get('feedbackShort') or d.get('trainingReadinessFeedback') or d.get('feedback') or '--'
+            print(f"🚦 {calendar_date} | 訓練完備度: {score} ({level}) | 建議: {feedback}")
 
     elif cmd == "fitness-age":
         for d in items:
@@ -335,8 +340,12 @@ def process_health_command(args: argparse.Namespace):
             if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
 
         elif cmd == "training-readiness":
-            data = health_client.get_training_readiness(args.date)
-            if data: metric_collection = {"data": data}
+            if args.start_date:
+                data_list = health_client.get_training_readiness_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
+                if data_list: metric_collection = {"data": data_list}
+            else:
+                data = health_client.get_training_readiness(args.date)
+                if data: metric_collection = {"data": data}
 
         elif cmd == "fitness-age":
             data = health_client.get_fitness_age()
