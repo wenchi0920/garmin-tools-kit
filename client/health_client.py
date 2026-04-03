@@ -182,7 +182,8 @@ class HealthClient(Client):
         """Get All Personal Records."""
         logger.debug("正在獲取個人紀錄...")
         try:
-            return garth.client.connectapi("/personalrecord-service/personalrecord/prs")
+            display_name = self.get_display_name()
+            return garth.client.connectapi(f"/personalrecord-service/personalrecord/prs/{display_name}")
         except Exception as e:
             logger.error(f"獲取個人紀錄失敗: {e}")
             return []
