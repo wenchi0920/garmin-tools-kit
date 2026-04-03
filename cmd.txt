@@ -1,0 +1,51 @@
+# Garmin Tool Kit CLI Commands & Options (v1.4.9)
+
+## 1. 全域選項 (Global Options)
+python3 garmin_tools.py [-h] [--version] [-v] [--username USERNAME] [--password PASSWORD] [--env-file [ENV_FILE]] [-ss SESSION] [--over-write] [--progress] [--gui]
+
+## 2. 子命令: activity (活動匯出)
+python3 garmin_tools.py activity [-h] [-c COUNT] [-d DATE] [-sd START_DATE] [-ed END_DATE] [-f {gpx,tcx,original,json}] [--directory DIRECTORY] [-ot] [--no-ot] [--desc [DESC]]
+
+## 3. 子命令: workout (訓練計畫管理)
+- 列出計畫: python3 garmin_tools.py workout list [-h]
+- 下載計畫: python3 garmin_tools.py workout get [-h] [-o OUTPUT] id
+- 上傳計畫: python3 garmin_tools.py workout upload [-h] file
+- 刪除計畫: python3 garmin_tools.py workout delete [-h] id
+
+## 4. 子命令: race-event (賽事管理)
+python3 garmin_tools.py race-event [-h] [-d DATE] [-sd START_DATE] [-ed END_DATE] [--summary] [-o OUTPUT]
+
+## 5. 子命令: summary (本地數據摘要)
+python3 garmin_tools.py summary [-h] [-d DAYS] [-o OUTPUT] [--date DATE]
+
+## 6. 子命令: health (健康數據管理)
+基礎語法: python3 garmin_tools.py health {subcommand} [options]
+
+### 常見健康子命令 (Health Subcommands):
+- health (基礎健康摘要)
+- sleep (睡眠數據)
+- body-battery (身體能量指數)
+- hrv (心率變異度)
+- weight (體重管理, 額外支援 --upload KG)
+- vo2max (VO2 Max)
+- max-hr (最大心率)
+- stress (壓力水準)
+- heart-rate (每日心率)
+- steps (步數統計)
+- calories (卡路里消耗)
+- training-readiness (訓練完備度)
+- training-status (訓練狀態)
+- fitness-age (體能年齡)
+- lactate-threshold (乳酸閾值)
+- race-predictions (賽事預測)
+- intensity-minutes (熱血時間)
+- hydration (補水紀錄)
+- personal-records (個人紀錄)
+- insights (Garmin Insights)
+- spo2 (脈搏血氧)
+- respiration (呼吸頻率)
+- blood-pressure (血壓紀錄)
+
+### 健康子命令通用選項 (Common Health Options):
+[-h] [-d DATE] [-sd START_DATE] [-ed END_DATE] [--summary] [-o OUTPUT]
+
