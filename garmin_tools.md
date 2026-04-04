@@ -19,7 +19,7 @@ python garmin_tools.py race-event => python garmin_tools.py race-event --help
 
 ### 1.2 認證獲取優先級 (Auth Hierarchy)
 系統會依序檢查以下來源，直到獲取認證資訊：
-1.  **CLI 參數**: `--username` 與 `--password`。
+1.  **CLI 參數**: `--username` 與 `--password`, --username && --password 存在時 優先使用。
 2.  **環境變數檔案**: `--env-file` (預設 `.env`) 中的 `GARMIN_USERNAME`。
 3.  **系統環境變數**: 直接讀取 OS 的環境變數。
 4.  **互動式輸入**: 若以上皆無，則在終端機提示輸入。
