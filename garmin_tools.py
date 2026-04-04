@@ -115,7 +115,7 @@ def main():
     health_subparsers = health_parser.add_subparsers(dest="health_command", required=True)
 
     # Health Subcommands
-    def add_health_sub(sub_parser, name, help_text, has_detailed=False, has_upload=False, has_limit=False, has_from_file=False):
+    def add_health_sub(sub_parser, name, help_text, has_detailed=False, has_upload=False, has_limit=False):
         p = sub_parser.add_parser(name, help=help_text)
         p.add_argument("-d", "--date", default=date.today().isoformat())
         p.add_argument("-sd", "--start-date", "--start_date")
@@ -128,8 +128,6 @@ def main():
             p.add_argument("--upload", type=float, metavar="KG", help="上傳一筆新的體重紀錄 (kg)")
         if has_limit:
             p.add_argument("-l", "--limit", type=int, default=5, metavar="LIMIT", help="查詢最近活動的最大心率筆數")
-        if has_from_file:
-            p.add_argument("--from-file", action="store_true", help="優先從本地已下載的檔案讀取數據")
         return p
 
     add_health_sub(health_subparsers, "health", "基礎健康摘要 (步數、心率等)")
@@ -138,7 +136,7 @@ def main():
     add_health_sub(health_subparsers, "hrv", "心率變異度 (HRV)", has_detailed=True)
     add_health_sub(health_subparsers, "weight", "體重管理", has_upload=True)
     add_health_sub(health_subparsers, "vo2max", "VO2 Max 與訓練狀態")
-    add_health_sub(health_subparsers, "max-hr", "最大心率統計", has_limit=True, has_from_file=True)
+    add_health_sub(health_subparsers, "max-hr", "最大心率統計", has_limit=True)
     add_health_sub(health_subparsers, "stress", "壓力水準")
     add_health_sub(health_subparsers, "heart-rate", "每日心率")
     add_health_sub(health_subparsers, "steps", "步數統計")

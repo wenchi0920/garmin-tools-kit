@@ -332,22 +332,12 @@ def process_health_command(args: argparse.Namespace):
                     metric_collection["status"]["latest_status"] = status.latest_status.model_dump(mode="json")
 
         elif cmd == "max-hr":
-            # 支援 --from-file 優先讀取快取 (符合 garmin_tools.md 規範)
-            if getattr(args, "from_file", False):
-                cache_path = resolve_default_output_path("health", args)
-                if os.path.exists(cache_path):
-                    logger.info(f"正在從本地快取讀取 max-hr: {cache_path}")
-                    with open(cache_path, "r", encoding="utf-8") as f:
-                        metric_collection = json.load(f)
-            
-            if not metric_collection:
-                client = MaxHrClient(email=username, password=password, session_dir=args.session)
-                daily = client.get_daily_hr_metrics(args.date)
-                if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
-                limit_val = getattr(args, "limit", 5)
-                recent = client.get_recent_activity_max_hr(limit=limit_val)
-                if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
-
+            client = MaxHrClient(email=username, password=password, session_dir=args.session)
+            daily = client.get_daily_hr_metrics(args.date)
+            if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
+            limit_val = getattr(args, "limit", 5)
+            recent = client.get_recent_activity_max_hr(limit=limit_val)
+            if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
         elif cmd == "training-readiness":
             if args.start_date:
                 data_list = health_client.get_training_readiness_range(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
