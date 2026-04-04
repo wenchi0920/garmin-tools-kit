@@ -332,12 +332,21 @@ def process_health_command(args: argparse.Namespace):
                     metric_collection["status"]["latest_status"] = status.latest_status.model_dump(mode="json")
 
         elif cmd == "max-hr":
-            client = MaxHrClient(email=username, password=password, session_dir=args.session)
-            daily = client.get_daily_hr_metrics(args.date)
-            if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
-            limit_val = getattr(args, "limit", 5)
-            recent = client.get_recent_activity_max_hr(limit=limit_val)
-            if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
+            # 支援 --from-file 優先讀取快取 (符合 garmin_tools.md 規範)
+            if getattr(args, "from_file", False):
+                cache_path = resolve_default_output_path("health", args)
+                if os.path.exists(cache_path):
+                    logger.info(f"正在從本地快取讀取 max-hr: {cache_path}")
+                    with open(cache_path, "r", encoding="utf-8") as f:
+                        metric_collection = json.load(f)
+            
+            if not metric_collection:
+                client = MaxHrClient(email=username, password=password, session_dir=args.session)
+                daily = client.get_daily_hr_metrics(args.date)
+                if daily: metric_collection["daily_metrics"] = daily.model_dump(mode="json")
+                limit_val = getattr(args, "limit", 5)
+                recent = client.get_recent_activity_max_hr(limit=limit_val)
+                if recent: metric_collection["recent_activities"] = [a.model_dump(mode="json") for a in recent]
 
         elif cmd == "training-readiness":
             if args.start_date:
@@ -466,55 +475,57 @@ def fetch_race_calendar(args: argparse.Namespace):
 
 
 def execute_combined_summary(args: argparse.Namespace):
-    """處理頂層 summary 命令：僅從本地快取彙整資料，不呼叫 API (符合使用者最新規範)"""
+    """處理頂層 summary 命令：優先從本地快取彙整資料，若無資料則從 API 下載 (符合 garmin_tools.md 規範)"""
     target_dates = []
 
     if getattr(args, "date", None):
         target_dates = [args.date]
     else:
         # 計算過去 N 天 (含今天)
-        days = getattr(args, "days", 7)
+        days = getattr(args, "days", 1) # 預設改為 1 天 (今天)
         end_date = date.today()
         start_date = end_date - timedelta(days=days-1)
         delta = (end_date - start_date).days + 1
         target_dates = [(start_date + timedelta(days=i)).isoformat() for i in range(delta)]
 
     # 建立日期索引的資料字典，避免多次讀取檔案
-    # data_map: Dict[date_str, Dict[metric_name, value]]
     data_map = {d: {"calendarDate": d} for d in target_dates}
+    # 追蹤每個日期缺失的指標
+    missing_data = {d: {"health", "sleep", "hrv", "bp"} for d in target_dates}
 
-    def scan_and_index(directory: str, index_logic):
+    def scan_and_index(directory: str, metric_type: str, index_logic):
         if not os.path.exists(directory):
             return
         files = [f for f in os.listdir(directory) if f.endswith(".json")]
         for filename in sorted(files):
             file_path = os.path.join(directory, filename)
-            logger.debug(f"🔍 正在讀取本地快取: {file_path}")
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = json.load(f)
                     if content:
-                        index_logic(content)
+                        found_dates = index_logic(content)
+                        for d in (found_dates or []):
+                            if d in missing_data:
+                                missing_data[d].discard(metric_type)
             except Exception as e:
-                logger.warning(f"⚠️ 讀取檔案 {file_path} 失敗: {e}")
+                logger.debug(f"⚠️ 讀取檔案 {file_path} 失敗: {e}")
 
     # 1. 核心健康數據 (health)
     def index_health(content):
-        if not content: return
+        found = []
         data_list = content.get("data", [])
         if not isinstance(data_list, list): data_list = [data_list]
         for h in data_list:
             if not h: continue
             d = h.get("calendarDate")
             if d in target_dates:
-                if d not in data_map: data_map[d] = {"calendarDate": d}
                 data_map[d].update(h)
-
-    scan_and_index("data/health", index_health)
+                found.append(d)
+        return found
 
     # 2. 睡眠分數 (sleep)
     def index_sleep(content):
-        if not content: return
+        found = []
         data_list = content.get("data", [])
         if not isinstance(data_list, list): data_list = [data_list]
         for s in data_list:
@@ -523,61 +534,109 @@ def execute_combined_summary(args: argparse.Namespace):
             if not dto: continue
             d = dto.get("calendarDate")
             if d in target_dates:
-                if d not in data_map: data_map[d] = {"calendarDate": d}
-                # BUG FIX: 處理 sleepScores 可能為 None 的情況
                 scores = dto.get("sleepScores") or {}
                 score = scores.get("overall", {}).get("value", "--")
                 data_map[d]["sleep_score"] = score
-
-    scan_and_index("data/sleep", index_sleep)
+                found.append(d)
+        return found
 
     # 3. HRV 趨勢 (hrv)
     def index_hrv(content):
-        if not content: return
+        found = []
         data = content.get("data") or {}
-        # HRV JSON 可能包含單一物件或列表，且單一物件中數據常在 hrvSummary 下
         if isinstance(data, dict):
             data_list = [data.get("hrvSummary") or data]
         else:
             data_list = data
-
         if not isinstance(data_list, list): data_list = [data_list]
-
         for h in data_list:
             if not h or not isinstance(h, dict): continue
             d = h.get("calendarDate")
             if d in target_dates:
-                if d not in data_map: data_map[d] = {"calendarDate": d}
                 data_map[d]["hrv_avg"] = h.get("lastNightAvg", "--")
-
-    scan_and_index("data/hrv", index_hrv)
+                found.append(d)
+        return found
 
     # 4. 血壓 (blood-pressure)
     def index_bp(content):
-        if not content: return
-        # BUG FIX: 處理 data 可能為 None 的情況
+        found = []
         summaries = (content.get("data") or {}).get("measurementSummaries", [])
         for s in summaries:
             if not s: continue
             d = s.get("calendarDate")
             if d in target_dates:
-                if d not in data_map: data_map[d] = {"calendarDate": d}
                 data_map[d]["blood_pressure"] = f"{s.get('systolic')}/{s.get('diastolic')}"
+                found.append(d)
+        return found
 
-    scan_and_index("data/blood-pressure", index_bp)
+    # 首次掃描
+    scan_and_index("data/health", "health", index_health)
+    scan_and_index("data/sleep", "sleep", index_sleep)
+    scan_and_index("data/hrv", "hrv", index_hrv)
+    scan_and_index("data/blood-pressure", "bp", index_bp)
+
+    # 檢查是否有缺失資料，有的話才下載
+    all_missing_metrics = set().union(*(missing_data[d] for d in target_dates))
+    if any(missing_data[d] for d in target_dates):
+        logger.info(f"正在彙整 {len(target_dates)} 天的健康資料，偵測到部分日期缺失，準備從 API 下載...")
+        username, password = resolve_user_auth(args)
+        
+        for metric in all_missing_metrics:
+            dates_to_download = [d for d in target_dates if metric in missing_data[d]]
+            if not dates_to_download: continue
+            
+            try:
+                if metric == "health":
+                    client = HealthClient(email=username, password=password, session_dir=args.session)
+                    for d in dates_to_download:
+                        data = client.get_daily_summary(d)
+                        if data:
+                            save_path = resolve_default_output_path("health", argparse.Namespace(health_command="health", date=d))
+                            with open(save_path, "w", encoding="utf-8") as f:
+                                json.dump({"data": data.model_dump(mode="json")}, f, indent=4, ensure_ascii=False)
+                            index_health({"data": data.model_dump(mode="json")})
+                elif metric == "sleep":
+                    client = SleepClient(email=username, password=password, session_dir=args.session)
+                    for d in dates_to_download:
+                        data = client.get_sleep_data(d)
+                        if data:
+                            save_path = resolve_default_output_path("health", argparse.Namespace(health_command="sleep", date=d))
+                            with open(save_path, "w", encoding="utf-8") as f:
+                                json.dump({"data": data.model_dump(mode="json")}, f, indent=4, ensure_ascii=False)
+                            index_sleep({"data": data.model_dump(mode="json")})
+                elif metric == "hrv":
+                    client = HrvClient(email=username, password=password, session_dir=args.session)
+                    for d in dates_to_download:
+                        data = client.get_hrv_data(d)
+                        if data:
+                            save_path = resolve_default_output_path("health", argparse.Namespace(health_command="hrv", date=d))
+                            with open(save_path, "w", encoding="utf-8") as f:
+                                json.dump({"data": data.model_dump(mode="json")}, f, indent=4, ensure_ascii=False)
+                            index_hrv({"data": data.model_dump(mode="json")})
+                elif metric == "bp":
+                    client = HealthClient(email=username, password=password, session_dir=args.session)
+                    # 抓取缺失日期範圍
+                    sd, ed = min(dates_to_download), max(dates_to_download)
+                    data = client.get_blood_pressure(sd, ed)
+                    if data:
+                        save_path = resolve_default_output_path("health", argparse.Namespace(health_command="blood-pressure", start_date=sd, end_date=ed))
+                        with open(save_path, "w", encoding="utf-8") as f:
+                            json.dump({"data": data}, f, indent=4, ensure_ascii=False)
+                        index_bp({"data": data})
+            except Exception as e:
+                logger.error(f"下載 {metric} 資料失敗: {e}")
+    else:
+        logger.info(f"所有目標日期 ({len(target_dates)} 天) 的本地資料已齊備。")
 
     local_items = []
-    logger.info(f"正在從本地目錄彙整 {len(target_dates)} 天的健康資料 (今天往前推算)...")
-
     for d in target_dates:
         item = data_map[d]
-        # BUG FIX: 放寬判定標準，只要有任一項數據 (步數, 心率, 睡眠, HRV, 血壓) 就納入顯示
         relevant_keys = ["totalSteps", "restingHeartRate", "sleep_score", "hrv_avg", "blood_pressure"]
         if any(k in item for k in relevant_keys):
             local_items.append(item)
 
     if not local_items:
-        logger.warning("未找到任何本地健康數據快取。")
+        logger.warning("未找到任何健康數據 (本地或 API)。")
         return
 
     # 顯示表格並存檔

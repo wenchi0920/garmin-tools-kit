@@ -23,6 +23,7 @@ Changelog:
 2026-03-26: 1.4.8 - 優化 health summary 邏輯，支援從本地所有 JSON 檔案彙整數據，解決範圍抓取導致的漏報問題。
 2026-03-26: 1.4.9 - 強化 health summary 容錯機制 (Null Check) 並新增讀取檔案日誌 (Debug Level)。
 2026-03-27: 1.5.0 - 重構：將 `garmin_tools.py` 拆分為 `utils.py`, `commands.py` 與主程式。
+2026-04-04: 1.5.1 - 依照 garmin_tools.md 規範優化 summary 命令，支援自動下載缺失資料並調整預設行為。
 """
 import argparse
 import sys
@@ -39,7 +40,7 @@ from core.commands import (
     execute_combined_summary
 )
 
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 
 
 # ==============================================================================
@@ -104,8 +105,8 @@ def main():
     race_parser.add_argument("-o", "--output")
 
     # Summary (Standalone) - 重新定義為全域綜合摘要
-    summary_parser = subparsers.add_parser("summary", help="綜合文字摘要 (僅讀取本地資料，不呼叫 API)")
-    summary_parser.add_argument("-d", "--days", type=int, default=7, help="顯示從今天往前推算的天數 (預設 7 天)")
+    summary_parser = subparsers.add_parser("summary", help="綜合文字摘要 (優先讀取本地資料，無資料則從 API 下載)")
+    summary_parser.add_argument("-d", "--days", type=int, default=1, help="顯示從今天往前推算的天數 (預設 1 天, 即今天)")
     summary_parser.add_argument("-o", "--output", help="將摘要存儲至指定檔案 (.txt)")
     summary_parser.add_argument("--date", help="指定特定日期 (YYYY-MM-DD)，若提供則忽略 -d")
 

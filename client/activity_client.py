@@ -85,11 +85,12 @@ class ActivityClient(Client):
         if desc:
             description = activity.get("description", "")
             if description:
-                # Limit description size if specified
+                # Limit description size if specified (string digit or non-boolean integer)
                 if isinstance(desc, str) and desc.isdigit():
                     description = description[:int(desc)]
-                elif isinstance(desc, int):
+                elif isinstance(desc, int) and not isinstance(desc, bool):
                     description = description[:desc]
+                
                 # Replace space and illegal chars in filename
                 description = "".join(c for c in description if c.isalnum() or c in ("-", "_")).strip()
                 if description:
