@@ -100,7 +100,7 @@ python3 garmin_tools.py summary --date 2026-04-03 -o daily_report.txt
 ## 6. 子命令: health (健康數據管理)
 
 ### 結構說明
-**基礎語法**: `python3 garmin_tools.py health {subcommand} [options]`
+**基礎語法**: `python3 garmin_tools.py -v health {subcommand} [options]`
 
 **健康子命令通用選項**:
 `[-h] [-d DATE] [-sd START_DATE] [-ed END_DATE] [--summary] [-o OUTPUT]`
@@ -109,27 +109,29 @@ python3 garmin_tools.py summary --date 2026-04-03 -o daily_report.txt
 
 | 子命令 | 功能描述 | 執行範例 (部分) |
 | :--- | :--- | :--- |
-| **health** | 基礎健康摘要 (步數、心率等) | `python3 garmin_tools.py health health --summary` |
-| **sleep** | 睡眠數據 | `python3 garmin_tools.py health sleep --days 7 --summary` |
-| **body-battery** | 身體能量指數 | `python3 garmin_tools.py health body-battery -d 2026-04-03` |
-| **hrv** | 心率變異度 (HRV) | `python3 garmin_tools.py health hrv --summary` |
-| **weight** | 體重管理 | `python3 garmin_tools.py health weight --summary` |
-| **(weight upload)** | 上傳體重 | `python3 garmin_tools.py health weight --upload 70.5` |
-| **vo2max** | VO2 Max 與訓練狀態 | `python3 garmin_tools.py health vo2max --summary` |
-| **max-hr** | 最大心率統計 | `python3 garmin_tools.py health max-hr --summary` |
-| **stress** | 壓力水準 | `python3 garmin_tools.py health stress --summary` |
-| **heart-rate** | 每日心率 | `python3 garmin_tools.py health heart-rate -d 2026-04-03` |
-| **steps** | 步數統計 | `python3 garmin_tools.py health steps -sd 2026-03-01 -ed 2026-03-07` |
-| **calories** | 卡路里消耗 | `python3 garmin_tools.py health calories --summary` |
-| **training-readiness** | 訓練完備度 | `python3 garmin_tools.py health training-readiness --summary` |
-| **training-status** | 訓練狀態與負荷分析 | `python3 garmin_tools.py health training-status --summary` |
-| **fitness-age** | 體能年齡 | `python3 garmin_tools.py health fitness-age` |
-| **lactate-threshold** | 乳酸閾值 | `python3 garmin_tools.py health lactate-threshold` |
-| **race-predictions** | 賽事預測 | `python3 garmin_tools.py health race-predictions` |
-| **intensity-minutes** | 熱血時間 | `python3 garmin_tools.py health intensity-minutes` |
-| **hydration** | 補水紀錄 | `python3 garmin_tools.py health hydration --summary` |
-| **personal-records** | 個人紀錄 | `python3 garmin_tools.py health personal-records` |
-| **insights** | Garmin Insights | `python3 garmin_tools.py health insights` |
-| **spo2** | 脈搏血氧 (SpO2) | `python3 garmin_tools.py health spo2 --summary` |
-| **respiration** | 呼吸頻率 | `python3 garmin_tools.py health respiration --summary` |
-| **blood-pressure** | 血壓紀錄 | `python3 garmin_tools.py health blood-pressure --summary` |
+| **health** | 基礎健康摘要 (步數、心率等) | `python3 garmin_tools.py -v health health --summary` |
+| **sleep** | 睡眠數據 | `python3 garmin_tools.py -v health sleep --days 7 --summary` |
+| **weight** | 體重管理 | `python3 garmin_tools.py -v health weight --summary` |
+
+| **body-battery** | 身體能量指數 | `python3 garmin_tools.py -v health body-battery -d 2026-04-03` |
+| **hrv** | 心率變異度 (HRV) | `python3 garmin_tools.py -v health hrv --summary` |
+
+| **(weight upload)** | 上傳體重 | `python3 garmin_tools.py -v health weight --upload 70.5` |
+| **vo2max** | VO2 Max 與訓練狀態 | `python3 garmin_tools.py -v health vo2max --summary` |
+| **max-hr** | 最大心率統計 | `python3 garmin_tools.py -v health max-hr --summary` |
+| **stress** | 壓力水準 | `python3 garmin_tools.py -v health stress --summary` |
+| **heart-rate** | 每日心率 | `python3 garmin_tools.py -v health heart-rate -d 2026-04-03` |
+| **steps** | 步數統計 | `python3 garmin_tools.py -v health steps -sd 2026-03-01 -ed 2026-03-07` |
+| **calories** | 卡路里消耗 | `python3 garmin_tools.py -v health calories --summary` |
+| **training-readiness** | 訓練完備度 | `python3 garmin_tools.py -v health training-readiness --summary` |
+| **training-status** | 訓練狀態與負荷分析 | `python3 garmin_tools.py -v health training-status --summary` |
+| **fitness-age** | 體能年齡 | `python3 garmin_tools.py -v health fitness-age` |
+| **lactate-threshold** | 乳酸閾值 | `python3 garmin_tools.py -v health lactate-threshold` |
+| **race-predictions** | 賽事預測 | `python3 garmin_tools.py -v health race-predictions` |
+| **intensity-minutes** | 熱血時間 | `python3 garmin_tools.py -v health intensity-minutes` |
+| **hydration** | 補水紀錄 | `python3 garmin_tools.py -v health hydration --summary` |
+| **personal-records** | 個人紀錄 | `python3 garmin_tools.py -v health personal-records` |
+| **insights** | Garmin Insights | `python3 garmin_tools.py -v health insights` |
+| **spo2** | 脈搏血氧 (SpO2) | `python3 garmin_tools.py -v health spo2 --summary` |
+| **respiration** | 呼吸頻率 | `python3 garmin_tools.py -v health respiration --summary` |
+| **blood-pressure** | 血壓紀錄 | `python3 garmin_tools.py -v health blood-pressure --summary` |
