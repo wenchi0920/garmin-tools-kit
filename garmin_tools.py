@@ -24,6 +24,7 @@ Changelog:
 2026-03-26: 1.4.9 - 強化 health summary 容錯機制 (Null Check) 並新增讀取檔案日誌 (Debug Level)。
 2026-03-27: 1.5.0 - 重構：將 `garmin_tools.py` 拆分為 `utils.py`, `commands.py` 與主程式。
 2026-04-04: 1.5.1 - 依照 garmin_tools.md 規範優化 summary 命令，支援自動下載缺失資料並包含訓練完備度指標。
+2026-04-04: 1.5.2 - 移除冗餘的 `health health` 子命令。
 """
 import argparse
 import sys
@@ -130,7 +131,6 @@ def main():
             p.add_argument("-l", "--limit", type=int, default=5, metavar="LIMIT", help="查詢最近活動的最大心率筆數")
         return p
 
-    add_health_sub(health_subparsers, "health", "基礎健康摘要 (步數、心率等)")
     add_health_sub(health_subparsers, "sleep", "睡眠數據")
     add_health_sub(health_subparsers, "body-battery", "身體能量指數")
     add_health_sub(health_subparsers, "hrv", "心率變異度 (HRV)", has_detailed=True)
