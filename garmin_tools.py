@@ -40,7 +40,7 @@ from core.commands import (
     execute_combined_summary
 )
 
-VERSION = "1.5.1"
+VERSION = "1.4.7"
 
 
 # ==============================================================================
@@ -154,8 +154,7 @@ def main():
     add_health_sub(health_subparsers, "respiration", "呼吸頻率")
     add_health_sub(health_subparsers, "blood-pressure", "血壓紀錄")
 
-    # 若執行時未帶任何參數，或子命令後面未帶參數，則自動加上 --help 以符合 GEMINI.md 規範
-    # 注意：根據 garmin_tools.md 3.5 節，summary 應支援預設當天日期直接執行
+    # 若執行時未帶任何參數，或子命令後面未帶參數，則自動加上 --help 以符合 garmin_tools.md 規範
     if len(sys.argv) == 1:
         sys.argv.append("--help")
     elif len(sys.argv) > 1 and sys.argv[-1] in COMMAND_HANDLERS and sys.argv[-1] != "summary":
