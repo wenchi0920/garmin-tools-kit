@@ -10,7 +10,7 @@ Changelog:
 2026-03-11: 1.4.1 - 支援預設執行指令：不帶子命令時預設執行 activity -c 5。
 2026-03-11: 1.4.2 - 版本手動更新。
 2026-03-12: 1.4.2 - 實作資料存放標準化 (Data Storage Standardization) 與自動目錄生成，符合 garmin_tools.md 規範。
-2026-03-12: 1.4.2 - 重構 COMMAND_HANDLERS 結構並修正 Docker 備份排程 (AM 11:00) 以符合 GEMINI.md 規範。
+2026-03-12: 1.4.2 - 重構 COMMAND_HANDLERS 結構並修正 Docker 備份排程 (08, 13, 18, 23) 以符合 GEMINI.md 規範。
 2026-03-17: 1.4.3 - 修正 fetch_race_calendar 忽略日期範圍 (-sd, -ed) 的 bug 並優化空結果 summary 輸出。
 2026-03-21: 1.4.1 - 重構健康數據子命令結構，將所有健康指標整合進 health 父命令下，並新增細項指標抓取。
 2026-03-21: 1.4.1 - 優化 resolve_default_output_path 以消除檔名中的冗餘目錄前綴，並更新整合測試腳本。
@@ -23,7 +23,7 @@ Changelog:
 2026-03-26: 1.4.8 - 優化 health summary 邏輯，支援從本地所有 JSON 檔案彙整數據，解決範圍抓取導致的漏報問題。
 2026-03-26: 1.4.9 - 強化 health summary 容錯機制 (Null Check) 並新增讀取檔案日誌 (Debug Level)。
 2026-03-27: 1.5.0 - 重構：將 `garmin_tools.py` 拆分為 `utils.py`, `commands.py` 與主程式。
-2026-04-04: 1.5.1 - 依照 garmin_tools.md 規範優化 summary 命令，支援自動下載缺失資料並調整預設行為。
+2026-04-04: 1.5.1 - 依照 garmin_tools.md 規範優化 summary 命令，支援自動下載缺失資料並包含訓練完備度指標。
 """
 import argparse
 import sys

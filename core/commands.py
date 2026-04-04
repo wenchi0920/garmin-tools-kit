@@ -123,8 +123,8 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         return
 
     # 表頭
-    headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力", "能量(高/低)", "睡眠分數", "hrv", "血壓"]
-    col_widths = [12, 12, 10, 18, 16, 6, 10, 8, 8, 10]
+    headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力", "能量(高/低)", "睡眠分數", "hrv", "完備度", "血壓"]
+    col_widths = [12, 12, 10, 18, 16, 6, 10, 8, 8, 8, 10]
 
     table_lines = []
     header_line = " | ".join(f"{h:<{w}}" for h, w in zip(headers, col_widths))
@@ -145,9 +145,10 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         # 額外欄位 (從彙整中獲取)
         sleep_score = str(entry.get("sleep_score", "--"))
         hrv = str(entry.get("hrv_avg", "--"))
+        readiness = str(entry.get("readiness_score", "--"))
         bp = entry.get("blood_pressure", "--")
 
-        row = [date_str, steps, dist, cals, hr, stress, bb, sleep_score, hrv, bp]
+        row = [date_str, steps, dist, cals, hr, stress, bb, sleep_score, hrv, readiness, bp]
         row_line = " | ".join(f"{str(v):<{w}}" for v, w in zip(row, col_widths))
         table_lines.append(row_line)
 
@@ -481,7 +482,7 @@ def execute_combined_summary(args: argparse.Namespace):
     # 建立日期索引的資料字典，避免多次讀取檔案
     data_map = {d: {"calendarDate": d} for d in target_dates}
     # 追蹤每個日期缺失的指標
-    missing_data = {d: {"health", "sleep", "hrv", "bp"} for d in target_dates}
+    missing_data = {d: {"health", "sleep", "hrv", "bp", "readiness"} for d in target_dates}
 
     def scan_and_index(directory: str, metric_type: str, index_logic):
         if not os.path.exists(directory):
@@ -559,11 +560,25 @@ def execute_combined_summary(args: argparse.Namespace):
                 found.append(d)
         return found
 
+    # 5. 訓練完備度 (readiness)
+    def index_readiness(content):
+        found = []
+        data_list = content.get("data", [])
+        if not isinstance(data_list, list): data_list = [data_list]
+        for d_item in data_list:
+            if not d_item: continue
+            d = d_item.get("calendarDate")
+            if d in target_dates:
+                data_map[d]["readiness_score"] = d_item.get("score", "--")
+                found.append(d)
+        return found
+
     # 首次掃描
     scan_and_index("data/health", "health", index_health)
     scan_and_index("data/sleep", "sleep", index_sleep)
     scan_and_index("data/hrv", "hrv", index_hrv)
     scan_and_index("data/blood-pressure", "bp", index_bp)
+    scan_and_index("data/training-readiness", "readiness", index_readiness)
 
     # 檢查是否有缺失資料，有的話才下載
     all_missing_metrics = set().union(*(missing_data[d] for d in target_dates))
@@ -613,6 +628,15 @@ def execute_combined_summary(args: argparse.Namespace):
                         with open(save_path, "w", encoding="utf-8") as f:
                             json.dump({"data": data}, f, indent=4, ensure_ascii=False)
                         index_bp({"data": data})
+                elif metric == "readiness":
+                    client = HealthClient(email=username, password=password, session_dir=args.session)
+                    for d in dates_to_download:
+                        data = client.get_training_readiness(d)
+                        if data:
+                            save_path = resolve_default_output_path("health", argparse.Namespace(health_command="training-readiness", date=d))
+                            with open(save_path, "w", encoding="utf-8") as f:
+                                json.dump({"data": data}, f, indent=4, ensure_ascii=False)
+                            index_readiness({"data": data})
             except Exception as e:
                 logger.error(f"下載 {metric} 資料失敗: {e}")
     else:
