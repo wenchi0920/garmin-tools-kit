@@ -154,21 +154,34 @@ class HealthClient(Client):
             logger.error(f"獲取賽事預測失敗: {e}")
             return None
 
-    def get_intensity_minutes(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[dict]:
-        """Get Intensity Minutes for a date range using the weekly stats endpoint."""
-        if isinstance(start_date, date): start_date = start_date.isoformat()
-        if isinstance(end_date, date): end_date = end_date.isoformat()
+    def get_intensity_minutes(self, start_date: Union[str, date], end_date: Union[str, date], show_progress: bool = False) -> List[dict]:
+        """Get Intensity Minutes for a date range by iterating daily (Reliable)."""
+        if isinstance(start_date, str): start_date = date.fromisoformat(start_date)
+        if isinstance(end_date, str): end_date = date.fromisoformat(end_date)
         
         logger.debug(f"正在獲取熱血時間統計: {start_date} ~ {end_date}")
-        try:
-            # Correct range endpoint for weekly/period stats
-            data = garth.client.connectapi(f"/usersummary-service/stats/intensityMinutes/weekly/{start_date}/{end_date}")
+        results = []
+        current_date = start_date
+        total_days = (end_date - start_date).days + 1
+        
+        iterable = range(total_days)
+        if show_progress:
+            from tqdm import tqdm
+            iterable = tqdm(iterable, desc="獲取熱血時間", unit="天")
+            
+        for i in iterable:
+            current_date = start_date + timedelta(days=i)
+            data = self.get_daily_summary(current_date)
             if data:
-                return data if isinstance(data, list) else [data]
-            return []
-        except Exception as e:
-            logger.error(f"獲取熱血時間失敗: {e}")
-            return []
+                # Convert model to dict and ensure it has the expected keys for summary display
+                item = data.model_dump(mode="json")
+                # Garmin daily summary has these, but we map them to the names display expects
+                if "activeIntensityMinutes" in item and "totalIntensityMinutes" not in item:
+                    item["totalIntensityMinutes"] = item["activeIntensityMinutes"]
+                results.append(item)
+            self._random_delay()
+            
+        return results
 
     def get_hydration(self, calendar_date: Union[str, date]) -> Optional[dict]:
         """Get Hydration data for a specific date."""

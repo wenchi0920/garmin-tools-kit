@@ -427,7 +427,10 @@ def process_health_command(args: argparse.Namespace):
             if data: metric_collection = {"data": data}
 
         elif cmd == "intensity-minutes":
-            data = health_client.get_intensity_minutes(args.start_date or args.date, args.end_date or date.today().isoformat())
+            if args.start_date:
+                data = health_client.get_intensity_minutes(args.start_date, args.end_date or date.today().isoformat(), show_progress=args.progress)
+            else:
+                data = health_client.get_intensity_minutes(args.date, args.date)
             if data: metric_collection = {"data": data}
 
         elif cmd == "hydration":
