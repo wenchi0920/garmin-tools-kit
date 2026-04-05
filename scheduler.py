@@ -98,7 +98,7 @@ def run_backup_job(force_all=False):
     python_bin = sys.executable
 
     # 1. [FIT & Summary] 於 08, 13, 18, 23 時執行，或強制執行
-    if force_all or hour in [8, 13, 18, 23]:
+    if force_all or hour in [8, 9,10, 11, 12, 14, 18, 23]:
         logger.info("📦 [FIT] 備份活動數據 (雙日)...")
         execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "activity", "--start_date", yesterday, "--end_date", today, "--format", "original", "--originaltime"])
 
