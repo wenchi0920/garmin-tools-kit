@@ -254,7 +254,50 @@ def display_health_summary(cmd: str, metric_collection: Dict[str, Any], args: ar
     elif cmd == "fitness-age":
         for d in items:
             if not isinstance(d, dict): continue
-            print(f"👶 體能年齡: {d.get('fitnessAge')} | 實際年齡: {d.get('actualAge')}")
+            print(f"👶 體能年齡: {d.get('fitnessAge')} | 可達成目標: {d.get('achievableFitnessAge', '--')} | 實際年齡: {d.get('actualAge')}")
+
+    elif cmd == "lactate-threshold":
+        for d in items:
+            if not isinstance(d, dict): continue
+            hr = d.get('lactateThresholdHeartRate', '--')
+            speed = d.get('lactateThresholdSpeed')
+            pace = f"{1000 / (speed * 60):.2f} min/km" if speed else "--"
+            print(f"🏃 乳酸閾值: 心率 {hr} bpm | 配速 {pace}")
+
+    elif cmd == "race-predictions":
+        def fmt_sec(s):
+            if not s: return "--"
+            return str(timedelta(seconds=int(s)))
+        for d in items:
+            if not isinstance(d, dict): continue
+            p = d.get("racePredictions", d) # Sometimes nested
+            print(f"🏁 賽事預測: 5k {fmt_sec(p.get('fiveK'))} | 10k {fmt_sec(p.get('tenK'))} | 半馬 {fmt_sec(p.get('halfMarathon'))} | 全馬 {fmt_sec(p.get('marathon'))}")
+
+    elif cmd == "intensity-minutes":
+        for d in items:
+            if not isinstance(d, dict): continue
+            print(f"🔥 熱血時間 ({d.get('calendarDate')}): 總計 {d.get('totalIntensityMinutes')} (中 {d.get('moderateIntensityMinutes')} / 高 {d.get('vigorousIntensityMinutes')})")
+
+    elif cmd == "hydration":
+        for d in items:
+            if not isinstance(d, dict): continue
+            print(f"💧 補水 ({d.get('calendarDate')}): 已攝取 {d.get('value')} ml / 目標 {d.get('goal')} ml")
+
+    elif cmd == "personal-records":
+        for d in items:
+            if not isinstance(d, dict): continue
+            print(f"🏆 {d.get('type')}: {d.get('value')} ({d.get('date')})")
+
+    elif cmd == "insights":
+        insights = metric_collection.get("data", {}).get("insights", [])
+        for i in insights:
+            print(f"💡 Insights: {i.get('message', 'N/A')}")
+
+    elif cmd == "blood-pressure":
+        data = metric_collection.get("data", {})
+        summaries = data.get("measurementSummaries", []) if isinstance(data, dict) else []
+        for s in summaries:
+            print(f"🩸 血壓 ({s.get('calendarDate')}): {s.get('systolic')}/{s.get('diastolic')} | 心率 {s.get('heartRate')}")
 
 
 def process_health_command(args: argparse.Namespace):
@@ -348,7 +391,7 @@ def process_health_command(args: argparse.Namespace):
                 if data: metric_collection = {"data": data}
 
         elif cmd == "fitness-age":
-            data = health_client.get_fitness_age()
+            data = health_client.get_fitness_age(args.date)
             if data: metric_collection = {"data": data}
 
         elif cmd == "lactate-threshold":

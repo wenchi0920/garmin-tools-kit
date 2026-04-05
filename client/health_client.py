@@ -116,29 +116,39 @@ class HealthClient(Client):
             
         return results
 
-    def get_fitness_age(self) -> Optional[dict]:
-        """Get Fitness Age report."""
-        logger.debug("正在獲取體能年齡報告...")
+    def get_fitness_age(self, calendar_date: Union[str, date] = None) -> Optional[dict]:
+        """Get Fitness Age report for a specific date (default today)."""
+        if calendar_date is None:
+            date_str = date.today().isoformat()
+        elif isinstance(calendar_date, date):
+            date_str = calendar_date.isoformat()
+        else:
+            date_str = calendar_date
+
+        logger.debug(f"正在獲取體能年齡報告 ({date_str})...")
         try:
-            return garth.client.connectapi("/usersummary-service/stats/fitnessAge")
+            # Correct endpoint from python-garminconnect: /fitnessage-service/fitnessage/<date>
+            return garth.client.connectapi(f"/fitnessage-service/fitnessage/{date_str}")
         except Exception as e:
             logger.error(f"獲取體能年齡失敗: {e}")
             return None
 
     def get_lactate_threshold(self) -> Optional[dict]:
-        """Get Lactate Threshold data."""
+        """Get Latest Lactate Threshold data."""
         logger.debug("正在獲取乳酸閾值數據...")
         try:
-            return garth.client.connectapi("/usersummary-service/stats/lactateThreshold")
+            # Correct endpoint: /biometric-service/biometric/latestLactateThreshold
+            return garth.client.connectapi("/biometric-service/biometric/latestLactateThreshold")
         except Exception as e:
             logger.error(f"獲取乳酸閾值失敗: {e}")
             return None
 
     def get_race_predictions(self) -> Optional[dict]:
-        """Get Race Predictions (5k, 10k, Half, Full)."""
+        """Get Latest Race Predictions (5k, 10k, Half, Full)."""
         logger.debug("正在獲取賽事預測...")
         try:
-            return garth.client.connectapi("/usersummary-service/stats/racePredictions")
+            # Correct endpoint: /usersummary-service/stats/racePredictions/latest
+            return garth.client.connectapi("/usersummary-service/stats/racePredictions/latest")
         except Exception as e:
             logger.error(f"獲取賽事預測失敗: {e}")
             return None
