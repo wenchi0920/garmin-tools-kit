@@ -204,15 +204,6 @@ class HealthClient(Client):
             logger.error(f"獲取個人紀錄失敗: {e}")
             return []
 
-    def get_insights(self) -> Optional[dict]:
-        """Get Garmin Insights."""
-        logger.debug("正在獲取 Garmin Insights...")
-        try:
-            return garth.client.connectapi("/insights-service/insights/summary")
-        except Exception as e:
-            logger.error(f"獲取 Insights 失敗: {e}")
-            return None
-
     def get_blood_pressure(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[dict]:
         """Get Blood Pressure for a date range."""
         if isinstance(start_date, date): start_date = start_date.isoformat()

@@ -149,7 +149,6 @@ def main():
     add_health_sub(health_subparsers, "intensity-minutes", "熱血時間")
     add_health_sub(health_subparsers, "hydration", "補水紀錄")
     add_health_sub(health_subparsers, "personal-records", "個人紀錄")
-    add_health_sub(health_subparsers, "insights", "Garmin Insights")
     add_health_sub(health_subparsers, "spo2", "脈搏血氧 (SpO2)")
     add_health_sub(health_subparsers, "respiration", "呼吸頻率")
     add_health_sub(health_subparsers, "blood-pressure", "血壓紀錄")

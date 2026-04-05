@@ -45,5 +45,7 @@ class HealthSummary(BaseModel):
     # Intensity Minutes
     intensityMinutesGoal: Optional[int] = None
     activeIntensityMinutes: Optional[int] = None
+    moderateIntensityMinutes: Optional[int] = None
+    vigorousIntensityMinutes: Optional[int] = None
     # Events
     bodyBatteryActivityEventList: Optional[List[BodyBatteryEvent]] = None

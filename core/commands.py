@@ -312,11 +312,6 @@ def display_health_summary(cmd: str, metric_collection: Dict[str, Any], args: ar
             if not isinstance(d, dict): continue
             print(f"🏆 {d.get('type')}: {d.get('value')} ({d.get('date')})")
 
-    elif cmd == "insights":
-        insights = metric_collection.get("data", {}).get("insights", [])
-        for i in insights:
-            print(f"💡 Insights: {i.get('message', 'N/A')}")
-
     elif cmd == "blood-pressure":
         data = metric_collection.get("data", {})
         summaries = data.get("measurementSummaries", []) if isinstance(data, dict) else []
@@ -439,10 +434,6 @@ def process_health_command(args: argparse.Namespace):
 
         elif cmd == "personal-records":
             data = health_client.get_personal_records()
-            if data: metric_collection = {"data": data}
-
-        elif cmd == "insights":
-            data = health_client.get_insights()
             if data: metric_collection = {"data": data}
 
         elif cmd == "spo2":
