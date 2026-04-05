@@ -107,7 +107,7 @@ def main():
 
     # Summary (Standalone) - 重新定義為全域綜合摘要
     summary_parser = subparsers.add_parser("summary", help="綜合文字摘要 (優先讀取本地資料，無資料則從 API 下載)")
-    summary_parser.add_argument("-d", "--days", type=int, default=1, help="顯示從今天往前推算的天數 (預設 1 天, 即今天)")
+    summary_parser.add_argument("-d", "--days", type=int, default=7, help="顯示從今天往前推算的天數 (預設 7 天)")
     summary_parser.add_argument("-o", "--output", help="將摘要存儲至指定檔案 (.txt)")
     summary_parser.add_argument("--date", help="指定特定日期 (YYYY-MM-DD)，若提供則忽略 -d")
 

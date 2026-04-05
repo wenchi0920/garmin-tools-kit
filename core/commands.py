@@ -473,7 +473,7 @@ def execute_combined_summary(args: argparse.Namespace):
         target_dates = [args.date]
     else:
         # 計算過去 N 天 (含今天)
-        days = getattr(args, "days", 1) # 預設改為 1 天 (今天)
+        days = getattr(args, "days", 7) # 預設改為 7 天
         end_date = date.today()
         start_date = end_date - timedelta(days=days-1)
         delta = (end_date - start_date).days + 1
