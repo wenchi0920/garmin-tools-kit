@@ -259,19 +259,40 @@ def display_health_summary(cmd: str, metric_collection: Dict[str, Any], args: ar
     elif cmd == "lactate-threshold":
         for d in items:
             if not isinstance(d, dict): continue
-            hr = d.get('lactateThresholdHeartRate', '--')
-            speed = d.get('lactateThresholdSpeed')
-            pace = f"{1000 / (speed * 60):.2f} min/km" if speed else "--"
+            # Try multiple known key patterns
+            hr = d.get('heartRate') or d.get('lactateThresholdHeartRate') or '--'
+            speed = d.get('speed') or d.get('lactateThresholdSpeed')
+            
+            if speed:
+                # speed is in m/s, convert to min/km
+                total_seconds = 1000 / speed
+                minutes = int(total_seconds // 60)
+                seconds = int(total_seconds % 60)
+                pace = f"{minutes}:{seconds:02d} min/km"
+            else:
+                pace = "--"
             print(f"🏃 乳酸閾值: 心率 {hr} bpm | 配速 {pace}")
 
     elif cmd == "race-predictions":
         def fmt_sec(s):
             if not s: return "--"
-            return str(timedelta(seconds=int(s)))
+            try:
+                return str(timedelta(seconds=int(float(s))))
+            except:
+                return "--"
+        
         for d in items:
             if not isinstance(d, dict): continue
-            p = d.get("racePredictions", d) # Sometimes nested
-            print(f"🏁 賽事預測: 5k {fmt_sec(p.get('fiveK'))} | 10k {fmt_sec(p.get('tenK'))} | 半馬 {fmt_sec(p.get('halfMarathon'))} | 全馬 {fmt_sec(p.get('marathon'))}")
+            
+            # Handle List of objects format (v2)
+            preds = d.get("racePredictions")
+            if isinstance(preds, list):
+                p_map = {p.get("distance"): p.get("predictedTime") for p in preds if isinstance(p, dict)}
+                print(f"🏁 賽事預測: 5k {fmt_sec(p_map.get(5000))} | 10k {fmt_sec(p_map.get(10000))} | 半馬 {fmt_sec(p_map.get(21097.5) or p_map.get(21100))} | 全馬 {fmt_sec(p_map.get(42195))}")
+            else:
+                # Handle Flat dict format (v1)
+                p = d.get("racePredictions") or d
+                print(f"🏁 賽事預測: 5k {fmt_sec(p.get('fiveK'))} | 10k {fmt_sec(p.get('tenK'))} | 半馬 {fmt_sec(p.get('halfMarathon'))} | 全馬 {fmt_sec(p.get('marathon'))}")
 
     elif cmd == "intensity-minutes":
         for d in items:

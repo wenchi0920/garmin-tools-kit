@@ -147,8 +147,9 @@ class HealthClient(Client):
         """Get Latest Race Predictions (5k, 10k, Half, Full)."""
         logger.debug("正在獲取賽事預測...")
         try:
-            # Correct endpoint: /usersummary-service/stats/racePredictions/latest
-            return garth.client.connectapi("/usersummary-service/stats/racePredictions/latest")
+            display_name = self.get_display_name()
+            # Correct endpoint: /metrics-service/metrics/racepredictions/latest/<displayName>
+            return garth.client.connectapi(f"/metrics-service/metrics/racepredictions/latest/{display_name}")
         except Exception as e:
             logger.error(f"獲取賽事預測失敗: {e}")
             return None
