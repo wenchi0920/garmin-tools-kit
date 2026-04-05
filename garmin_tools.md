@@ -100,7 +100,6 @@ python3 garmin_tools.py summary  預設 -d 7 , 要提供所有 的健康數據, 
 | `intensity-minutes` | 熱血時間 | `intensity-minutes_{日期}.json` | **週活動量統計**。追蹤中高強度活動的分鐘數，符合健康建議。 |
 | `hydration` | 補水紀錄 | `hydration_{日期}.json` | **水分攝取追蹤**。紀錄當日飲水量與預設目標之對比。 |
 | `personal-records` | 個人紀錄 | `personal-records_{日期}.json` | **最佳紀錄存檔**。抓取所有運動項目的個人最佳成績。 |
-| `insights` | Garmin Insights | `insights_{日期}.json` | **同儕數據對比**。提供與同性別/年齡組群的活動數據對比分析。 |
 | `spo2` | 脈搏血氧 | `spo2_{日期}.json` | **血氧飽和度**。監控睡眠或高海拔期間的平均血氧水準。 |
 | `respiration` | 呼吸頻率 | `respiration_{日期}.json` | **每分鐘呼吸次數**。紀錄睡眠與清醒時的平均呼吸頻率 (brpm)。 |
 | `blood-pressure` | 血壓紀錄 | `blood-pressure_{日期}.json` | **血壓健康管理**。紀錄手動輸入或相容設備同步的收縮壓與舒張壓。 |

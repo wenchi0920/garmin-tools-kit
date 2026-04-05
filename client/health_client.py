@@ -155,28 +155,20 @@ class HealthClient(Client):
             return None
 
     def get_intensity_minutes(self, start_date: Union[str, date], end_date: Union[str, date]) -> List[dict]:
-        """Get Intensity Minutes for a date range by iterating daily."""
-        if isinstance(start_date, str): start_date = date.fromisoformat(start_date)
-        if isinstance(end_date, str): end_date = date.fromisoformat(end_date)
+        """Get Intensity Minutes for a date range using the weekly stats endpoint."""
+        if isinstance(start_date, date): start_date = start_date.isoformat()
+        if isinstance(end_date, date): end_date = end_date.isoformat()
         
-        logger.debug(f"正在逐日獲取熱血時間: {start_date} ~ {end_date}")
-        results = []
-        current_date = start_date
-        while current_date <= end_date:
-            date_str = current_date.isoformat()
-            try:
-                # 採用最通用的 camelCase 端點
-                data = garth.client.connectapi(f"/usersummary-service/stats/intensityMinutes/daily/{date_str}")
-                if data:
-                    if isinstance(data, list): results.extend(data)
-                    else: results.append(data)
-            except Exception as e:
-                logger.warning(f"獲取日期 {date_str} 的熱血時間失敗: {e}")
-            
-            current_date += timedelta(days=1)
-            self._random_delay()
-            
-        return results
+        logger.debug(f"正在獲取熱血時間統計: {start_date} ~ {end_date}")
+        try:
+            # Correct range endpoint for weekly/period stats
+            data = garth.client.connectapi(f"/usersummary-service/stats/intensityMinutes/weekly/{start_date}/{end_date}")
+            if data:
+                return data if isinstance(data, list) else [data]
+            return []
+        except Exception as e:
+            logger.error(f"獲取熱血時間失敗: {e}")
+            return []
 
     def get_hydration(self, calendar_date: Union[str, date]) -> Optional[dict]:
         """Get Hydration data for a specific date."""

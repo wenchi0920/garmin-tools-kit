@@ -297,7 +297,10 @@ def display_health_summary(cmd: str, metric_collection: Dict[str, Any], args: ar
     elif cmd == "intensity-minutes":
         for d in items:
             if not isinstance(d, dict): continue
-            print(f"🔥 熱血時間 ({d.get('calendarDate')}): 總計 {d.get('totalIntensityMinutes')} (中 {d.get('moderateIntensityMinutes')} / 高 {d.get('vigorousIntensityMinutes')})")
+            moderate = d.get('moderateIntensityMinutes') or d.get('moderateValue') or 0
+            vigorous = d.get('vigorousIntensityMinutes') or d.get('vigorousValue') or 0
+            total = d.get('totalIntensityMinutes') or (moderate + 2 * vigorous)
+            print(f"🔥 熱血時間 ({d.get('calendarDate')}): 總計 {total} (中 {moderate} / 高 {vigorous}) | 目標: {d.get('intensityMinutesGoal') or d.get('weeklyGoal') or '--'}")
 
     elif cmd == "hydration":
         for d in items:

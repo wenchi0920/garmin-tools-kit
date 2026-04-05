@@ -1,0 +1,929 @@
+[
+    {
+        "id": 14570060,
+        "eventName": "Taipei International Marathon (Half Marathon)",
+        "date": "2023-12-17",
+        "url": "https://www.ahotu.com/event/taipei-international-marathon?utm_source=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21097.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "07:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "Taipei, TWN",
+        "locationStartPoint": {
+            "lat": 25.033333,
+            "lon": 121.633333
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 14947813,
+        "eventName": "2024 11th長堤曙光元旦馬拉松",
+        "date": "2024-01-01",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 5.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "108台灣台北市萬華區青年路188巷1弄7號No馬場町紀念公園",
+        "locationStartPoint": {
+            "lat": 25.018674,
+            "lon": 121.503438
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 14947815,
+        "eventName": "2024 渣打臺北公益馬拉松",
+        "date": "2024-02-25",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 13.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:20",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "Taipei City Hall, No. 1市府路信義區台北市台灣 110",
+        "locationStartPoint": {
+            "lat": 25.038173,
+            "lon": 121.564349
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 14947935,
+        "eventName": "2024年台北國際復活節公益路跑",
+        "date": "2024-03-30",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 3.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "104台灣台北市中山區濱江街5號大佳河濱公園",
+        "locationStartPoint": {
+            "lat": 25.07469,
+            "lon": 121.541101
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 14947937,
+        "eventName": "2024新北市鐵道馬拉松接力賽",
+        "date": "2024-04-21",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 5.9,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "228台灣新北市貢寮區興隆街36號",
+        "locationStartPoint": {
+            "lat": 25.017178,
+            "lon": 121.942555
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 15661224,
+        "eventName": "2024 ELLE RUN WITH STYLE",
+        "date": "2024-05-04",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 10.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "台灣104058台北市中山區濱江街5號大佳河濱公園",
+        "locationStartPoint": {
+            "lat": 25.07174,
+            "lon": 121.53036
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 15285607,
+        "eventName": "臺北市第二十一屆舒跑杯路跑賽",
+        "date": "2024-05-12",
+        "url": "https://www.sportsnet.org.tw/20240512_web/",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 9.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "Taipei City Hall, No. 1市府路信義區台北市台灣 110",
+        "locationStartPoint": {
+            "lat": 25.038173,
+            "lon": 121.564349
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 15510213,
+        "eventName": " 2024 蠟筆小新 FUN RUN - 新北場",
+        "date": "2024-07-14",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 3.5,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "07:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "241台灣新北市三重區水漾路一段新北大都會公園",
+        "locationStartPoint": {
+            "lat": 25.055464,
+            "lon": 121.480746
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 16692920,
+        "eventName": "2024 Let's run 空英1919陪讀路跑",
+        "date": "2024-09-21",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 9.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "14:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "231台灣新北市新店區風景區東岸河邊",
+        "locationStartPoint": {
+            "lat": 24.956068,
+            "lon": 121.536513
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 16739800,
+        "eventName": "2024嘉里大榮公益半馬",
+        "date": "2024-09-28",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "07:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "335台灣桃園市大溪區環湖路1-10號南苑停車場",
+        "locationStartPoint": {
+            "lat": 24.815541,
+            "lon": 121.248687
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 17753693,
+        "eventName": "2024關渡宮公益祈福GO",
+        "date": "2024-10-05",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 6.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "112台灣台北市北投區知行路360號",
+        "locationStartPoint": {
+            "lat": 25.117145,
+            "lon": 121.462993
+        },
+        "eventType": "hiking",
+        "race": false
+    },
+    {
+        "id": 16692930,
+        "eventName": "2024 華航馬拉松- 星光夜跑",
+        "date": "2024-10-12",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "14:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "104台灣台北市中山區濱江街5號大佳河濱公園",
+        "locationStartPoint": {
+            "lat": 25.07469,
+            "lon": 121.541101
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 14947943,
+        "eventName": "2024長榮航空城市觀光馬拉松",
+        "date": "2024-10-27",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "100台灣台北市中正區凱達格蘭大道",
+        "locationStartPoint": {
+            "lat": 25.039615,
+            "lon": 121.515388
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 17753713,
+        "eventName": "2024新北市第十屆工安盃路跑",
+        "date": "2024-11-09",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 10.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "220台灣新北市板橋區華江河濱公園",
+        "locationStartPoint": {
+            "lat": 25.037261,
+            "lon": 121.482053
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 16441635,
+        "eventName": "Naha Marathon",
+        "date": "2024-12-01",
+        "url": "https://www.ahotu.com/event/naha-marathon?utm_source=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 42195.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "09:00",
+            "timeZoneId": "Asia/Tokyo"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "Naha City, JP",
+        "locationStartPoint": {
+            "lat": 26.2,
+            "lon": 127.683333
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 17193787,
+        "eventName": "台北馬 早餐馬",
+        "date": "2024-12-14",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 3.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "台灣110204台北市信義區市府路1號台北市政府",
+        "locationStartPoint": {
+            "lat": 25.03752,
+            "lon": 121.56442
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 15154349,
+        "eventName": "Taipei International Marathon (Half Marathon)",
+        "date": "2024-12-15",
+        "url": "https://www.ahotu.com/event/taipei-international-marathon?utm_source=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21100.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": null,
+        "note": null,
+        "workoutId": null,
+        "location": "Songshan District, TW",
+        "locationStartPoint": {
+            "lat": 25.049574,
+            "lon": 121.551556
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 18289597,
+        "eventName": "1919愛走動-台北陪騎活動",
+        "date": "2024-12-21",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 17.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "100台灣台北市中正區凱達格蘭大道",
+        "locationStartPoint": {
+            "lat": 25.039649,
+            "lon": 121.515336
+        },
+        "eventType": "cycling",
+        "race": false
+    },
+    {
+        "id": 19194556,
+        "eventName": "2024 祈福RUN林口_聖誕路跑",
+        "date": "2024-12-21",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 5.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "16:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "244台灣新北市林口區竹林路325號",
+        "locationStartPoint": {
+            "lat": 25.083734,
+            "lon": 121.389137
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 15746181,
+        "eventName": "2024 新北耶誕城接力賽",
+        "date": "2024-12-22",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 10.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "220台灣新北市板橋區中山路一段161號11樓",
+        "locationStartPoint": {
+            "lat": 25.012235,
+            "lon": 121.465541
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 16134262,
+        "eventName": "鎮西堡王者之路 ",
+        "date": "2025-01-12",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 50.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "313台灣新竹縣尖石鄉鎮西堡",
+        "locationStartPoint": {
+            "lat": 24.571827,
+            "lon": 121.301527
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 16529219,
+        "eventName": "Osaka Marathon",
+        "date": "2025-02-24",
+        "url": "https://www.ahotu.com/event/osaka-marathon?utm_source=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 42195.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": null,
+        "note": null,
+        "workoutId": null,
+        "location": "Kita Ward, JP",
+        "locationStartPoint": {
+            "lat": 34.693738,
+            "lon": 135.502165
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 19208534,
+        "eventName": "ZEPRO RUN全國半程馬拉松-新北場(浮洲橋)21K",
+        "date": "2025-03-30",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": 323634846,
+        "completionTarget": {
+            "value": 20.97,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "台灣220新北市板橋區板橋浮州橋河濱公園",
+        "locationStartPoint": {
+            "lat": 24.99515,
+            "lon": 121.43948
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 20211360,
+        "eventName": "2025新北市鐵道馬拉松接力賽",
+        "date": "2025-04-20",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 5.8,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "台灣241新北市光明里",
+        "locationStartPoint": {
+            "lat": 25.05719,
+            "lon": 121.49048
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 20211319,
+        "eventName": "2025 ELLE RUN WITH STYLE",
+        "date": "2025-05-10",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 10.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "台灣104台北市中山區大佳河濱公園表演廣場",
+        "locationStartPoint": {
+            "lat": 25.07562,
+            "lon": 121.53215
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 20211288,
+        "eventName": "2025年太平山雲端漫步路跑",
+        "date": "2025-06-07",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": 331717497,
+        "completionTarget": {
+            "value": 42.2,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:45",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "太平山山莊廣場",
+        "locationStartPoint": {
+            "lat": 24.49281,
+            "lon": 121.5371
+        },
+        "eventType": "running",
+        "race": false
+    },
+    {
+        "id": 21620889,
+        "eventName": "2025 慶祝父親節愛心公益路跑",
+        "date": "2025-08-03",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 10.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "04:30",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "243台灣新北市泰山區工專路84號",
+        "locationStartPoint": {
+            "lat": 25.040985,
+            "lon": 121.422301
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 21579460,
+        "eventName": "2025博克多烏來馬拉松",
+        "date": "2025-10-19",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": 411419101,
+        "completionTarget": {
+            "value": 42.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "06:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "233台灣新北市烏來區烏來街47號",
+        "locationStartPoint": {
+            "lat": 24.865514,
+            "lon": 121.551642
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 22016865,
+        "eventName": "2025大溪落羽松 秘境馬拉松賽",
+        "date": "2025-11-23",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": 356674742,
+        "completionTarget": {
+            "value": 21.29,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "08:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "320台灣桃園市中壢區龍岡路三段龍岡森林公園",
+        "locationStartPoint": {
+            "lat": 24.933908,
+            "lon": 121.235747
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 21579472,
+        "eventName": "2025 蘆洲觀音山馬拉松",
+        "date": "2025-11-30",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": 412019170,
+        "completionTarget": {
+            "value": 21.0,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "07:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "248台灣新北市蘆洲區二重疏洪道微風運河",
+        "locationStartPoint": {
+            "lat": 25.09487,
+            "lon": 121.457321
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 20349535,
+        "eventName": "Mt. Fuji International Marathon (Fujisan Marathon)",
+        "date": "2025-12-14",
+        "url": "https://www.ahotu.com/event/mt-fuji-international-marathon?utm_source=partner&utm_medium=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 42195.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "09:00",
+            "timeZoneId": "Asia/Tokyo"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "Fujikawaguchiko Town, JP",
+        "locationStartPoint": {
+            "lat": 35.515,
+            "lon": 138.756667
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 22274192,
+        "eventName": "Taipei Marathon (Half Marathon)",
+        "date": "2025-12-21",
+        "url": "https://www.ahotu.com/event/taipei-marathon?utm_source=partner&utm_medium=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21100.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "07:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "Xinyi District, TW",
+        "locationStartPoint": {
+            "lat": 25.032964,
+            "lon": 121.565427
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 23678286,
+        "eventName": "Standard Chartered Taipei Charity Marathon (Half Marathon)",
+        "date": "2026-01-11",
+        "url": "https://www.ahotu.com/event/standard-chartered-taipei-charity-marathon?utm_source=partner&utm_medium=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21097.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": null,
+        "note": null,
+        "workoutId": null,
+        "location": "Neihu District, TW",
+        "locationStartPoint": {
+            "lat": 25.091075,
+            "lon": 121.559835
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 21312386,
+        "eventName": "Standard Chartered Hong Kong Marathon (Half Marathon)",
+        "date": "2026-01-18",
+        "url": "https://www.ahotu.com/event/standard-chartered-hong-kong-marathon?utm_source=partner&utm_medium=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21100.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "05:40",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "Hong Kong, New Territories, HK",
+        "locationStartPoint": {
+            "lat": 22.2823,
+            "lon": 114.1615
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 24327722,
+        "eventName": "Tainan Half Marathon",
+        "date": "2026-03-01",
+        "url": "https://www.ahotu.com/event/tainan-half-marathon?utm_source=partner&utm_medium=garmin",
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 21100.0,
+            "unit": "meter",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "05:30",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": null,
+        "workoutId": null,
+        "location": "East District, TW",
+        "locationStartPoint": {
+            "lat": 22.9999,
+            "lon": 120.226876
+        },
+        "eventType": "running",
+        "race": true
+    },
+    {
+        "id": 26757893,
+        "eventName": "2026 VW LAVanLife 玩賽樂園",
+        "date": "2026-03-14",
+        "url": null,
+        "registrationUrl": null,
+        "courseId": null,
+        "completionTarget": {
+            "value": 51.5,
+            "unit": "kilometer",
+            "unitType": "distance"
+        },
+        "eventTimeLocal": {
+            "startTimeHhMm": "10:00",
+            "timeZoneId": "Asia/Hong_Kong"
+        },
+        "note": "",
+        "workoutId": null,
+        "location": "950台灣臺東縣台東市華泰路300號臺東森林公園",
+        "locationStartPoint": {
+            "lat": 22.768176,
+            "lon": 121.156259
+        },
+        "eventType": "multi_sport_triathlon",
+        "race": true
+    }
+]
