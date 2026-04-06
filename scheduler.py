@@ -133,13 +133,18 @@ def run_backup_job(force_all=False):
         
         # 範圍型指標 (Range)
         logger.info("   -> 更新範圍與賽事數據...")
-        range_tasks = [
-            ["health", "intensity-minutes", "--start_date", yesterday, "--end_date", today],
-            ["health", "blood-pressure", "--start_date", yesterday, "--end_date", today],
-            ["race-event"]
-        ]
-        for task in range_tasks:
-            execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write"] + task)
+        
+        # 1. 處理健康指標 (Range)
+        health_range_metrics = ["intensity-minutes", "blood-pressure"]
+        for metric in health_range_metrics:
+            execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write", "health", metric, "--start_date", yesterday, "--end_date", today])
+            
+        # 2. 處理賽事數據 (依需求改用特定輸出方式)
+        # python3 garmin_tools.py --over-write race-event --summary -o data/schedule.json 1> data/schedule.txt
+        # 注意：使用 shell=True 以支援重定向功能
+        race_cmd = f'"{python_bin}" "{GARMIN_TOOLS_PATH}" --over-write race-event --summary -o data/schedule.json > data/schedule.txt 2>&1'
+        logger.info(f"[CMD] {race_cmd}")
+        subprocess.run(race_cmd, shell=True, cwd=APP_ROOT)
 
     logger.success(f"✅ 備份引擎執行完畢。")
     logger.info("================================================================================")
