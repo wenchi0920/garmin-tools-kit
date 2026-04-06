@@ -111,7 +111,7 @@ def run_backup_job(force_all=False):
         
         # 雙日指標 (Daily Metrics)
         # 注意：此處需包含 "health" 子命令來抓取核心數據 (steps, resting HR 等)，供 summary 命令使用
-        metrics = ["health", "sleep", "body-battery", "hrv", "weight", "vo2max", "training-status", "stress", "heart-rate", "steps", "calories", "training-readiness", "spo2", "respiration", "hydration"]
+        metrics = ["sleep", "body-battery", "hrv", "weight", "vo2max", "training-status", "stress", "heart-rate", "steps", "calories", "training-readiness", "spo2", "respiration", "hydration"]
         for metric in metrics:
             logger.info(f"   -> 指標備份: {metric}...")
             base_args = [python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write", "health", metric]
