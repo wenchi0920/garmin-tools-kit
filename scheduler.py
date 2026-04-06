@@ -106,7 +106,7 @@ def run_backup_job(force_all=False):
         execute_cmd([python_bin, GARMIN_TOOLS_PATH, "summary", "-d", "7", "-o", "data/health/health.txt"])
 
     # 2. [HEALTH] 於 08, 23 時執行全量生理數據備份，或強制執行
-    if force_all or hour in [8, 23]:
+    if force_all or hour in [8, 12, 23]:
         logger.info("❤️ [HEALTH] 執行全量生理健康數據備份...")
         
         # 雙日指標 (Daily Metrics)
