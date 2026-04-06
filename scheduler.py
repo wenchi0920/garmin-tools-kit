@@ -100,10 +100,10 @@ def run_backup_job(force_all=False):
     # 1. [FIT & Summary] 於 08, 13, 18, 23 時執行，或強制執行
     if force_all or hour in [8, 9,10, 11, 12, 14, 18, 23]:
         logger.info("📦 [FIT] 備份活動數據 (雙日)...")
-        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "activity", "--start_date", yesterday, "--end_date", today, "--format", "original", "--originaltime"])
+        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "activity", "--start_date", yesterday, "--end_date", today, "--format", "original", "--originaltime"])
 
         logger.info("📊 [SUMMARY] 產生全方位健康摘要 (7天)...")
-        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "summary", "-d", "7", "-o", "data/health/health.txt"])
+        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "summary", "-d", "7", "-o", "data/health/health.txt"])
 
     # 2. [HEALTH] 於 08, 23 時執行全量生理數據備份，或強制執行
     if force_all or hour in [8, 12, 23]:
@@ -114,7 +114,7 @@ def run_backup_job(force_all=False):
         metrics = ["sleep", "body-battery", "hrv", "weight", "vo2max", "training-status", "stress", "heart-rate", "steps", "calories", "training-readiness", "spo2", "respiration", "hydration"]
         for metric in metrics:
             logger.info(f"   -> 指標備份: {metric}...")
-            base_args = [python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write", "health", metric]
+            base_args = [python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health", metric]
             
             for date in [yesterday, today]:
                 current_args = base_args + ["--date", date]
@@ -129,7 +129,7 @@ def run_backup_job(force_all=False):
             ["personal-records"], ["insights"], ["max-hr", "--limit", "5"]
         ]
         for task in periodic_tasks:
-            execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write", "health"] + task)
+            execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health"] + task)
         
         # 範圍型指標 (Range)
         logger.info("   -> 更新範圍與賽事數據...")
@@ -137,12 +137,12 @@ def run_backup_job(force_all=False):
         # 1. 處理健康指標 (Range)
         health_range_metrics = ["intensity-minutes", "blood-pressure"]
         for metric in health_range_metrics:
-            execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write", "health", metric, "--start_date", yesterday, "--end_date", today])
+            execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health", metric, "--start_date", yesterday, "--end_date", today])
             
         # 2. 處理賽事數據 (依需求改用特定輸出方式)
         # python3 garmin_tools.py --over-write race-event --summary -o data/schedule.json 1> data/schedule.txt
         # 注意：使用 shell=True 以支援重定向功能
-        race_cmd = f'"{python_bin}" "{GARMIN_TOOLS_PATH}" --over-write race-event --summary -o data/schedule.json > data/schedule.txt 2>&1'
+        race_cmd = f'"{python_bin}" "{GARMIN_TOOLS_PATH}" -vvv --over-write race-event --summary -o data/schedule.json > data/schedule.txt 2>&1'
         logger.info(f"[CMD] {race_cmd}")
         subprocess.run(race_cmd, shell=True, cwd=APP_ROOT)
 
