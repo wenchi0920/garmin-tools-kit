@@ -91,6 +91,28 @@ def format_seconds(seconds: Any) -> str:
     return f"{hours}時{minutes}分"
 
 
+import unicodedata
+
+def pad_text(text: str, length: int, align: str = "<") -> str:
+    """處理中英文混排的填充對齊"""
+    if text is None:
+        text = "--"
+    
+    # 計算顯示寬度
+    display_width = 0
+    for char in text:
+        if unicodedata.east_asian_width(char) in ('F', 'W', 'A'):
+            display_width += 2
+        else:
+            display_width += 1
+            
+    padding = max(0, length - display_width)
+    if align == "<":
+        return text + " " * padding
+    elif align == ">":
+        return " " * padding + text
+    return text + " " * padding
+
 def resolve_default_output_path(command: str, args: argparse.Namespace) -> str:
     """根據子命令與參數產生預設儲存路徑 (符合 garmin_tools.md 規範)"""
     base_dir = "data"

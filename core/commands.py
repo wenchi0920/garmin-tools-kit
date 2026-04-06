@@ -15,7 +15,7 @@ from client import (
     WorkoutClient, WorkoutDSLParser, RaceEventClient
 )
 from models.raceEventModel import RaceEventModel
-from .utils import resolve_user_auth, resolve_default_output_path, format_seconds
+from .utils import resolve_user_auth, resolve_default_output_path, format_seconds, pad_text
 
 
 def execute_activity_export(args: argparse.Namespace):
@@ -503,23 +503,62 @@ def fetch_race_calendar(args: argparse.Namespace):
         upcoming = [e for e in validated if e.event_date >= today]
         past = [e for e in validated if e.event_date < today]
 
-        print("\n" + "=" * 60)
-        print("🏆 我的賽事 (Upcoming)")
+        def get_dist_str(e: RaceEventModel) -> str:
+            if not e.completion_target or not e.completion_target.value:
+                return "--"
+            val = e.completion_target.value
+            unit = (e.completion_target.unit or "").lower()
+            if "meter" in unit:
+                return f"{val / 1000:.2f} km"
+            elif "kilometer" in unit:
+                return f"{val:.2f} km"
+            return f"{val} {unit}"
+
+        # 欄位寬度定義
+        W_DATE, W_CAT, W_NAME, W_DIST, W_TYPE = 12, 12, 35, 12, 15
+        
+        header = (
+            f"{pad_text('時間', W_DATE)} | "
+            f"{pad_text('分類', W_CAT)} | "
+            f"{pad_text('賽事名稱', W_NAME)} | "
+            f"{pad_text('距離', W_DIST)} | "
+            f"{pad_text('類型', W_TYPE)}"
+        )
+        
+        print("\n" + "=" * len(header))
+        print(header)
+        print("-" * len(header))
+        
+        print(f"🏆 我的賽事 (Upcoming)")
         if not upcoming:
             print("  無即將到來的賽事")
         else:
             for e in sorted(upcoming, key=lambda x: x.event_date):
-                print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
+                dist = get_dist_str(e)
+                print(
+                    f"{pad_text(str(e.event_date), W_DATE)} | "
+                    f"{pad_text('我的賽事', W_CAT)} | "
+                    f"{pad_text(e.event_name, W_NAME)} | "
+                    f"{pad_text(dist, W_DIST)} | "
+                    f"{pad_text(e.event_type or '--', W_TYPE)}"
+                )
         
-        print("\n" + "-" * 60)
-        print("🕒 過去賽事 (Past)")
+        print("\n" + "-" * len(header))
+        print(f"🕒 過去賽事 (Past)")
         if not past:
             print("  無過去賽事紀錄")
         else:
             # 過去賽事由近到遠排序
             for e in sorted(past, key=lambda x: x.event_date, reverse=True):
-                print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
-        print("=" * 60)
+                dist = get_dist_str(e)
+                print(
+                    f"{pad_text(str(e.event_date), W_DATE)} | "
+                    f"{pad_text('過去賽事', W_CAT)} | "
+                    f"{pad_text(e.event_name, W_NAME)} | "
+                    f"{pad_text(dist, W_DIST)} | "
+                    f"{pad_text(e.event_type or '--', W_TYPE)}"
+                )
+        print("=" * len(header))
 
     output_path = args.output
     if not output_path and not args.summary:
