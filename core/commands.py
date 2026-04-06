@@ -514,8 +514,8 @@ def fetch_race_calendar(args: argparse.Namespace):
                 return f"{val:.2f} km"
             return f"{val} {unit}"
 
-        # 欄位寬度定義
-        W_DATE, W_CAT, W_NAME, W_DIST, W_TYPE = 12, 12, 35, 12, 15
+        # 欄位寬度定義 (調整以匹配使用者範例)
+        W_DATE, W_CAT, W_NAME, W_DIST, W_TYPE = 12, 26, 40, 12, 20
         
         header = (
             f"{pad_text('時間', W_DATE)} | "
@@ -525,40 +525,41 @@ def fetch_race_calendar(args: argparse.Namespace):
             f"{pad_text('類型', W_TYPE)}"
         )
         
-        print("\n" + "=" * len(header))
-        print(header)
-        print("-" * len(header))
+        line_sep = "=" * (len(header) + 4) # 稍微補償對齊誤差
+        dash_sep = "-" * (len(header) + 4)
         
-        print(f"🏆 我的賽事 (Upcoming)")
-        if not upcoming:
-            print("  無即將到來的賽事")
-        else:
+        print("\n" + line_sep)
+        print(header)
+        print(dash_sep)
+        print("") # 依照範例空一行
+        
+        if upcoming:
             for e in sorted(upcoming, key=lambda x: x.event_date):
                 dist = get_dist_str(e)
                 print(
                     f"{pad_text(str(e.event_date), W_DATE)} | "
-                    f"{pad_text('我的賽事', W_CAT)} | "
+                    f"{pad_text('🏆 我的賽事 (Upcoming)', W_CAT)} | "
                     f"{pad_text(e.event_name, W_NAME)} | "
                     f"{pad_text(dist, W_DIST)} | "
                     f"{pad_text(e.event_type or '--', W_TYPE)}"
                 )
         
-        print("\n" + "-" * len(header))
-        print(f"🕒 過去賽事 (Past)")
-        if not past:
-            print("  無過去賽事紀錄")
-        else:
+        if upcoming and past:
+            print(dash_sep)
+            print("")
+
+        if past:
             # 過去賽事由近到遠排序
             for e in sorted(past, key=lambda x: x.event_date, reverse=True):
                 dist = get_dist_str(e)
                 print(
                     f"{pad_text(str(e.event_date), W_DATE)} | "
-                    f"{pad_text('過去賽事', W_CAT)} | "
+                    f"{pad_text('🕒 過去賽事 (Past)', W_CAT)} | "
                     f"{pad_text(e.event_name, W_NAME)} | "
                     f"{pad_text(dist, W_DIST)} | "
                     f"{pad_text(e.event_type or '--', W_TYPE)}"
                 )
-        print("=" * len(header))
+        print(line_sep)
 
     output_path = args.output
     if not output_path and not args.summary:
