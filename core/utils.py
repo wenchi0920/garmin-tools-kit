@@ -126,6 +126,8 @@ def resolve_default_output_path(command: str, args: argparse.Namespace) -> str:
     elif start_date:
         filename = f"{file_prefix}_{start_date}_latest.json"
     else:
-        filename = f"{file_prefix}_{date_val}.json"
+        # 如果都沒有，預設使用今天日期 (防止出現 _None.json)
+        val = date_val or datetime.now().strftime("%Y-%m-%d")
+        filename = f"{file_prefix}_{val}.json"
 
     return os.path.join(target_dir, filename)

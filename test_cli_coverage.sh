@@ -56,7 +56,7 @@ test_command "workout delete 123456" "Workout Delete"
 
 # 4. Race Event
 test_command "race-event" "Race Event Subcommand"
-test_command "race-event -sd 2026-01-01 -ed 2026-12-31 --summary" "Race Event options"
+test_command "race-event --summary" "Race Event options"
 
 # 5. Summary (Standalone)
 test_command "summary" "Standalone Summary"

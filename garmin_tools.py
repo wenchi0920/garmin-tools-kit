@@ -25,6 +25,10 @@ Changelog:
 2026-03-27: 1.5.0 - 重構：將 `garmin_tools.py` 拆分為 `utils.py`, `commands.py` 與主程式。
 2026-04-04: 1.5.1 - 依照 garmin_tools.md 規範優化 summary 命令，支援自動下載缺失資料並包含訓練完備度指標。
 2026-04-04: 1.5.2 - 移除冗餘的 `health health` 子命令。
+2026-04-06: 1.5.3 - 🚀 **重構 `race-event`：優化摘要顯示並簡化參數。**
+    - 移除 `-d`, `-sd`, `-ed` 參數，預設抓取所有賽事。
+    - `--summary` 輸出改為區分「我的賽事 (Upcoming)」與「過去賽事 (Past)」。
+    - 優化預設輸出檔名邏輯。
 """
 import argparse
 import sys
@@ -99,9 +103,6 @@ def main():
 
     # Race Event
     race_parser = subparsers.add_parser("race-event", help="賽事清單與行事曆看板")
-    race_parser.add_argument("-d", "--date", default=date.today().isoformat())
-    race_parser.add_argument("-sd", "--start-date", "--start_date")
-    race_parser.add_argument("-ed", "--end-date", "--end_date")
     race_parser.add_argument("--summary", action="store_true")
     race_parser.add_argument("-o", "--output")
 

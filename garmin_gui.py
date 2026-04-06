@@ -252,8 +252,8 @@ class GarminGUI:
             elif cmd == "activity":
                 cli_cmd.extend(["activity", "--start_date", sd, "--end_date", ed, "--directory", path, "--count", "all", "-ot"])
             elif cmd == "race-event":
-                cli_cmd.extend(["race-event", "--start_date", sd, "--end_date", ed, "--summary"])
-                cli_cmd.extend(["--output", os.path.join(path, f"{cmd}_{sd}_{ed}.json")])
+                cli_cmd.extend(["race-event", "--summary"])
+                cli_cmd.extend(["--output", os.path.join(path, f"{cmd}_{datetime.now().strftime('%Y-%m-%d')}.json")])
 
             try:
                 self.current_process = subprocess.Popen(cli_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")

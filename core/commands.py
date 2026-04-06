@@ -485,12 +485,9 @@ def fetch_race_calendar(args: argparse.Namespace):
     username, password = resolve_user_auth(args)
     client = RaceEventClient(email=username, password=password, session_dir=args.session)
 
-    if args.start_date:
-        start_date = args.start_date
-        end_date = args.end_date or date.today().isoformat()
-    else:
-        start_date = args.date
-        end_date = args.date
+    # 獲取完整賽事清單 (抓取一個極廣的範圍以符合「所有賽事」需求)
+    start_date = "2020-01-01"
+    end_date = "2099-12-31"
 
     raw_events = client.list_events(start_date=start_date, end_date=end_date)
 
@@ -502,11 +499,25 @@ def fetch_race_calendar(args: argparse.Namespace):
             continue
 
     if args.summary:
+        today = date.today()
+        upcoming = [e for e in validated if e.event_date >= today]
+        past = [e for e in validated if e.event_date < today]
+
         print("\n" + "=" * 60)
-        if not validated:
-            print(f"📅 {start_date} ~ {end_date} 期間無賽事紀錄")
+        print("🏆 我的賽事 (Upcoming)")
+        if not upcoming:
+            print("  無即將到來的賽事")
         else:
-            for e in sorted(validated, key=lambda x: x.event_date):
+            for e in sorted(upcoming, key=lambda x: x.event_date):
+                print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
+        
+        print("\n" + "-" * 60)
+        print("🕒 過去賽事 (Past)")
+        if not past:
+            print("  無過去賽事紀錄")
+        else:
+            # 過去賽事由近到遠排序
+            for e in sorted(past, key=lambda x: x.event_date, reverse=True):
                 print(f"📅 {e.event_date} | 🏆 {e.event_name} | 🏃 {e.event_type}")
         print("=" * 60)
 

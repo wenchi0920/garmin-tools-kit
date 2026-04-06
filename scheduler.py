@@ -136,7 +136,7 @@ def run_backup_job(force_all=False):
         range_tasks = [
             ["health", "intensity-minutes", "--start_date", yesterday, "--end_date", today],
             ["health", "blood-pressure", "--start_date", yesterday, "--end_date", today],
-            ["race-event", "--start_date", yesterday, "--end_date", today]
+            ["race-event"]
         ]
         for task in range_tasks:
             execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-v", "--over-write"] + task)
