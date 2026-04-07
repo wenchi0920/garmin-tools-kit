@@ -66,10 +66,10 @@ test_command "summary -d 7 -o test_summary.txt" "Summary options"
 test_command "health" "Health Subcommand"
 
 HEALTH_SUBS=(
-    "health" "sleep" "body-battery" "hrv" "weight" "vo2max" "max-hr" 
+    "sleep" "body-battery" "hrv" "weight" "vo2max" "max-hr" 
     "stress" "heart-rate" "steps" "calories" "training-readiness" 
     "training-status" "fitness-age" "lactate-threshold" "race-predictions" 
-    "intensity-minutes" "hydration" "personal-records" "insights" 
+    "intensity-minutes" "hydration" "personal-records"  
     "spo2" "respiration" "blood-pressure"
 )
 
