@@ -7,6 +7,10 @@ Changelog:
 2026-03-25: v1.3.0 - 整合 backup.sh 功能，實作自動化備份引擎，移除 Shell 依賴
 2026-03-26: v1.4.0 - 遷移至 APScheduler 提升排程穩定性與精確度
 2026-03-26: v1.5.0 - 實作 SIGHUP 信號處理與自我重啟機制 (Self-Restart)
+2026-04-08: v1.6.0 - 根據需求調整生理數據排程 (分層執行策略)
+2026-04-08: v1.6.1 - 調整 race-event 僅在 23 時執行
+2026-04-08: v1.6.2 - 調整其餘生理數據 (Group B) 僅在 23 時執行
+2026-04-08: v1.6.3 - 修正語法錯誤並優化排程邏輯
 """
 
 import os
@@ -97,30 +101,40 @@ def run_backup_job(force_all=False):
 
     python_bin = sys.executable
 
-    # 1. [FIT & Summary] 於 08, 13, 18, 23 時執行，或強制執行
-    if force_all or hour in [8, 9,10, 11, 12, 14, 18, 23]:
+    # 1. [FIT & Summary] 於 08, 13, 15, 18, 23 時執行，或強制執行
+    if force_all or hour in [8, 13, 15, 18, 23]:
         logger.info("📦 [FIT] 備份活動數據 (雙日)...")
         execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "activity", "--start_date", yesterday, "--end_date", today, "--format", "original", "--originaltime"])
 
         logger.info("📊 [SUMMARY] 產生全方位健康摘要 (7天)...")
         execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "summary", "-d", "7", "-o", "data/health/health.txt"])
 
-    # 2. [HEALTH] 於 08, 23 時執行全量生理數據備份，或強制執行
-    if force_all or hour in [8, 12, 23]:
-        logger.info("❤️ [HEALTH] 執行全量生理健康數據備份...")
-        
-        # 雙日指標 (Daily Metrics)
-        # 注意：此處需包含 "health" 子命令來抓取核心數據 (steps, resting HR 等)，供 summary 命令使用
-        metrics = ["sleep", "body-battery", "hrv", "weight", "vo2max", "training-status", "stress", "heart-rate", "steps", "calories", "training-readiness", "spo2", "respiration", "hydration"]
-        for metric in metrics:
+    # 2. [HEALTH] 生理數據分層備份
+    # A. 高頻指標 (RHR, BB, Stress, Sleep, HRV) -> 08, 13, 15, 18, 23
+    if force_all or hour in [8, 13, 15, 18, 23]:
+        logger.info("❤️ [HEALTH-A] 執行高頻生理數據備份 (RHR, BB, Stress, Sleep, HRV)...")
+        high_freq_metrics = ["heart-rate", "body-battery", "stress", "sleep", "hrv"]
+        for metric in high_freq_metrics:
             logger.info(f"   -> 指標備份: {metric}...")
             base_args = [python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health", metric]
-            
             for date in [yesterday, today]:
                 current_args = base_args + ["--date", date]
                 if metric == "hrv":
                     current_args.append("--detailed")
                 execute_cmd(current_args)
+
+    # B. 低頻指標 (其餘生理數據與週期性指標) -> 僅 23 時執行
+    if force_all or hour == 23:
+        logger.info("❤️ [HEALTH-B] 執行其餘生理健康數據與週期性指標...")
+        low_freq_metrics = [
+            "weight", "vo2max", "training-status", "steps", "calories", 
+            "training-readiness", "spo2", "respiration", "hydration"
+        ]
+        for metric in low_freq_metrics:
+            logger.info(f"   -> 指標備份: {metric}...")
+            base_args = [python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health", metric]
+            for date in [yesterday, today]:
+                execute_cmd(base_args + ["--date", date])
 
         # 週期性指標 (Periodic)
         logger.info("   -> 更新週期性指標...")
@@ -132,16 +146,14 @@ def run_backup_job(force_all=False):
             execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health"] + task)
         
         # 範圍型指標 (Range)
-        logger.info("   -> 更新範圍與賽事數據...")
-        
-        # 1. 處理健康指標 (Range)
+        logger.info("   -> 更新範圍健康數據...")
         health_range_metrics = ["intensity-minutes", "blood-pressure"]
         for metric in health_range_metrics:
             execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "--over-write", "health", metric, "--start_date", yesterday, "--end_date", today])
             
-        # 2. 處理賽事數據 (依需求改用特定輸出方式)
-        # python3 garmin_tools.py --over-write race-event --summary -o data/schedule.json 1> data/schedule.txt
-        # 注意：使用 shell=True 以支援重定向功能
+    # 3. [RACE-EVENT] 僅於 23 時執行，或強制執行
+    if force_all or hour == 23:
+        logger.info("📅 [RACE] 更新賽事行事曆與看板...")
         race_cmd = f'"{python_bin}" "{GARMIN_TOOLS_PATH}" -vvv --over-write race-event --summary -o data/schedule.json > data/schedule.txt 2>&1'
         logger.info(f"[CMD] {race_cmd}")
         subprocess.run(race_cmd, shell=True, cwd=APP_ROOT)
@@ -166,17 +178,19 @@ def main():
         return
 
     logger.info("🚀 Garmin Tool Kit 守護排程器已啟動...")
-    logger.info("📅 預定執行時間: 每天 08:00, 13:00, 18:00, 23:00")
+    logger.info("📅 預定執行時間: 每天 08:00, 13:00, 15:00, 18:00, 23:00")
     
     scheduler = BlockingScheduler()
     
     # 每 30 秒更新一次心跳
     scheduler.add_job(update_heartbeat, IntervalTrigger(seconds=30))
     
-    # 每天 08, 13, 18, 23 時執行備份
+    # 執行備份
+    # 高頻任務: 8, 13, 15, 18, 23
+    # 低頻與賽事任務: 僅在 23 時執行 (由 run_backup_job 內部邏輯判斷)
     scheduler.add_job(
         run_backup_job, 
-        CronTrigger(hour='8,13,18,23', minute=0, second=0),
+        CronTrigger(hour='8,13,15,18,23', minute=0, second=0),
         kwargs={'force_all': args.force_all}
     )
 
@@ -190,4 +204,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
