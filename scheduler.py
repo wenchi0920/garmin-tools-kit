@@ -106,9 +106,6 @@ def run_backup_job(force_all=False):
         logger.info("📦 [FIT] 備份活動數據 (雙日)...")
         execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "activity", "--start_date", yesterday, "--end_date", today, "--format", "original", "--originaltime"])
 
-        logger.info("📊 [SUMMARY] 產生全方位健康摘要 (7天)...")
-        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "summary", "-d", "7", "-o", "data/health/health.txt"])
-
     # 2. [HEALTH] 生理數據分層備份
     # A. 高頻指標 (RHR, BB, Stress, Sleep, HRV) -> 08, 13, 15, 18, 23
     if force_all or hour in [8, 13, 15, 18, 23]:
@@ -122,6 +119,10 @@ def run_backup_job(force_all=False):
                 if metric == "hrv":
                     current_args.append("--detailed")
                 execute_cmd(current_args)
+
+        logger.info("📊 [SUMMARY] 產生全方位健康摘要 (7天)...")
+        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "summary", "-d", "7", "-o", "data/health/health.txt"])
+
 
     # B. 低頻指標 (其餘生理數據與週期性指標) -> 僅 23 時執行
     if force_all or hour == 23:
