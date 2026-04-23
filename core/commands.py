@@ -124,14 +124,18 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
 
     # 表頭
     headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力(平均/最大)", "能量(高/低)", "睡眠分數", "hrv(7d/夜間/最高5分鐘平均/狀態)", "完備度", "血壓"]
-    # 調整寬度以適應較長的 HRV 與睡眠分數欄位
-    col_widths = [12, 14, 10, 22, 18, 16, 12, 16, 36, 10, 12]
+    # 根據範例調整寬度
+    col_widths = [12, 16, 12, 24, 20, 18, 14, 12, 38, 10, 12]
 
     table_lines = []
+    table_lines.append("\n**提供以下數據**：")
+    
     header_line = " | ".join(f"{h:<{w}}" for h, w in zip(headers, col_widths))
-    table_lines.append("-" * len(header_line))
+    separator = "-" * len(header_line)
+    
+    table_lines.append(separator)
     table_lines.append(header_line)
-    table_lines.append("-" * len(header_line))
+    table_lines.append(separator)
 
     for entry in items:
         if not isinstance(entry, dict): continue
@@ -182,7 +186,11 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         row_line = " | ".join(f"{str(v):<{w}}" for v, w in zip(row, col_widths))
         table_lines.append(row_line)
 
-    table_lines.append("-" * len(header_line))
+    table_lines.append(separator)
+
+    # 輸出至控制台
+    table_content = "\n".join(table_lines)
+    print(table_content)
     # 輸出至控制台
     table_content = "\n".join(table_lines)
     print(table_content)
