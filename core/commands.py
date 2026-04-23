@@ -124,8 +124,8 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
 
     # 表頭
     headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力(平均/最大)", "能量(高/低)", "睡眠分數", "hrv(7d/夜間/最高5分鐘平均/狀態)", "完備度", "血壓"]
-    # 調整寬度以適應較長的 HRV 欄位
-    col_widths = [12, 14, 10, 22, 18, 16, 12, 12, 36, 10, 12]
+    # 調整寬度以適應較長的 HRV 與睡眠分數欄位
+    col_widths = [12, 14, 10, 22, 18, 16, 12, 16, 36, 10, 12]
 
     table_lines = []
     header_line = " | ".join(f"{h:<{w}}" for h, w in zip(headers, col_widths))
@@ -136,35 +136,45 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
     for entry in items:
         if not isinstance(entry, dict): continue
         date_str = str(entry.get("calendarDate", "N/A"))
-        
+
         # 1. 步數/目標
-        steps = f"{(entry.get('totalSteps') or 0)}/{(entry.get('dailyStepGoal') or 0)}"
-        
+        steps_val = entry.get('totalSteps')
+        goal_val = entry.get('dailyStepGoal')
+        steps = f"{steps_val if steps_val is not None else '--'}/{goal_val if goal_val is not None else '--'}"
+
         # 2. 距離
-        dist = f"{(entry.get('totalDistanceMeters') or 0) / 1000:.2f}km"
-        
+        dist_val = entry.get('totalDistanceMeters')
+        dist = f"{dist_val / 1000:.2f}km" if dist_val is not None else "--"
+
         # 3. 卡路里(活動/總計)
-        cals = f"{int(entry.get('activeKilocalories') or 0)}/{int(entry.get('totalKilocalories') or 0)}"
-        
+        act_cal = entry.get('activeKilocalories')
+        tot_cal = entry.get('totalKilocalories')
+        cals = f"{int(act_cal) if act_cal is not None else '--'}/{int(tot_cal) if tot_cal is not None else '--'}"
+
         # 4. 心率(安靜/最大)
-        hr = f"{(entry.get('restingHeartRate') or '--')}/{(entry.get('maxHeartRate') or '--')}"
-        
+        rest_hr = entry.get('restingHeartRate')
+        max_hr = entry.get('maxHeartRate')
+        hr = f"{rest_hr if rest_hr is not None else '--'}/{max_hr if max_hr is not None else '--'}"
+
         # 5. 壓力(平均/最大)
-        stress = f"{(entry.get('averageStressLevel') or '--')}/{(entry.get('maxStressLevel') or '--')}"
-        
+        avg_stress = entry.get('averageStressLevel')
+        max_stress = entry.get('maxStressLevel')
+        stress = f"{avg_stress if avg_stress is not None else '--'}/{max_stress if max_stress is not None else '--'}"
+
         # 6. 能量(高/低)
-        # 根據範例 79/11，最高值在左，最低值在右
-        bb = f"{(entry.get('bodyBatteryHighestValue') or '--')}/{(entry.get('bodyBatteryLowestValue') or '--')}"
+        high_bb = entry.get('bodyBatteryHighestValue')
+        low_bb = entry.get('bodyBatteryLowestValue')
+        bb = f"{high_bb if high_bb is not None else '--'}/{low_bb if low_bb is not None else '--'}"
 
         # 7. 睡眠分數 => 分數(品質)
         sleep_score = str(entry.get("sleep_formatted", "--"))
-        
+
         # 8. hrv(7d/夜間/最高5分鐘平均/狀態)
         hrv = str(entry.get("hrv_formatted", "--"))
-        
+
         # 9. 完備度
         readiness = str(entry.get("readiness_score", "--"))
-        
+
         # 10. 血壓
         bp = entry.get("blood_pressure", "--")
 
@@ -173,7 +183,6 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         table_lines.append(row_line)
 
     table_lines.append("-" * len(header_line))
-
     # 輸出至控制台
     table_content = "\n".join(table_lines)
     print(table_content)
@@ -659,9 +668,15 @@ def execute_combined_summary(args: argparse.Namespace):
             if d in target_dates:
                 scores = dto.get("sleepScores") or {}
                 overall = scores.get("overall", {})
-                score = overall.get("value", "--")
-                qualifier = overall.get("qualifierKey", "--")
-                data_map[d]["sleep_formatted"] = f"{score}({qualifier})"
+                score = overall.get("value")
+                qualifier = overall.get("qualifierKey")
+                
+                if score is not None and qualifier is not None:
+                    data_map[d]["sleep_formatted"] = f"{score}({qualifier})"
+                elif score is not None:
+                    data_map[d]["sleep_formatted"] = str(score)
+                else:
+                    data_map[d]["sleep_formatted"] = "--"
                 found.append(d)
         return found
 
@@ -678,11 +693,19 @@ def execute_combined_summary(args: argparse.Namespace):
             if not h or not isinstance(h, dict): continue
             d = h.get("calendarDate")
             if d in target_dates:
-                w_avg = h.get("weeklyAvg", "--")
-                n_avg = h.get("lastNightAvg", "--")
-                high_5m = h.get("lastNight5MinHigh", "--")
-                status = h.get("status", "--")
-                data_map[d]["hrv_formatted"] = f"{w_avg}/{n_avg}/{high_5m}/{status}"
+                w_avg = h.get("weeklyAvg")
+                n_avg = h.get("lastNightAvg")
+                high_5m = h.get("lastNight5MinHigh")
+                status = h.get("status")
+                
+                if all(v is None for v in [w_avg, n_avg, high_5m, status]):
+                    data_map[d]["hrv_formatted"] = "--"
+                else:
+                    w = w_avg if w_avg is not None else "--"
+                    n = n_avg if n_avg is not None else "--"
+                    h5 = high_5m if high_5m is not None else "--"
+                    s = status if status is not None else "--"
+                    data_map[d]["hrv_formatted"] = f"{w}/{n}/{h5}/{s}"
                 found.append(d)
         return found
 
@@ -695,9 +718,15 @@ def execute_combined_summary(args: argparse.Namespace):
             d = s.get("calendarDate") or s.get("startDate")
             if d in target_dates:
                 # 優先使用 highSystolic/highDiastolic
-                systolic = s.get("highSystolic") or s.get("systolic") or "--"
-                diastolic = s.get("highDiastolic") or s.get("diastolic") or "--"
-                data_map[d]["blood_pressure"] = f"{systolic}/{diastolic}"
+                systolic = s.get("highSystolic") or s.get("systolic")
+                diastolic = s.get("highDiastolic") or s.get("diastolic")
+                
+                if systolic is None and diastolic is None:
+                    data_map[d]["blood_pressure"] = "--"
+                else:
+                    s_str = systolic if systolic is not None else "--"
+                    d_str = diastolic if diastolic is not None else "--"
+                    data_map[d]["blood_pressure"] = f"{s_str}/{d_str}"
                 found.append(d)
         return found
 

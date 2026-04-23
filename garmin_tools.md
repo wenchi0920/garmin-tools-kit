@@ -140,8 +140,8 @@ python3 garmin_tools.py summary
 
 
 **心率(安靜/最大)**：
-- 卡路里(活動) = ./data/health/health_日期.json 中  data->activeKilocalories
-- 卡路里(總計) = ./data/health/health_日期.json 中  data->totalKilocalories 
+- 卡路里(活動) = ./data/health/health_日期.json 中  data->restingHeartRate
+- 卡路里(總計) = ./data/health/health_日期.json 中  data->maxHeartRate 
 
 **壓力(平均/最大)**：
 - 壓力(平均) = ./data/health/health_日期.json 中  data->averageStressLevel 
