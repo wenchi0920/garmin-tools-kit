@@ -123,8 +123,9 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         return
 
     # 表頭
-    headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力", "能量(高/低)", "睡眠分數", "hrv", "完備度", "血壓"]
-    col_widths = [12, 12, 10, 18, 16, 6, 10, 8, 8, 8, 10]
+    headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力(平均/最大)", "能量(高/低)", "睡眠分數", "hrv(7d/夜間/最高5分鐘平均/狀態)", "完備度", "血壓"]
+    # 調整寬度以適應較長的 HRV 欄位
+    col_widths = [12, 14, 10, 22, 18, 16, 12, 12, 36, 10, 12]
 
     table_lines = []
     header_line = " | ".join(f"{h:<{w}}" for h, w in zip(headers, col_widths))
@@ -135,17 +136,36 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
     for entry in items:
         if not isinstance(entry, dict): continue
         date_str = str(entry.get("calendarDate", "N/A"))
+        
+        # 1. 步數/目標
         steps = f"{(entry.get('totalSteps') or 0)}/{(entry.get('dailyStepGoal') or 0)}"
+        
+        # 2. 距離
         dist = f"{(entry.get('totalDistanceMeters') or 0) / 1000:.2f}km"
+        
+        # 3. 卡路里(活動/總計)
         cals = f"{int(entry.get('activeKilocalories') or 0)}/{int(entry.get('totalKilocalories') or 0)}"
+        
+        # 4. 心率(安靜/最大)
         hr = f"{(entry.get('restingHeartRate') or '--')}/{(entry.get('maxHeartRate') or '--')}"
-        stress = f"{(entry.get('averageStressLevel') or '--')}"
+        
+        # 5. 壓力(平均/最大)
+        stress = f"{(entry.get('averageStressLevel') or '--')}/{(entry.get('maxStressLevel') or '--')}"
+        
+        # 6. 能量(高/低)
+        # 根據範例 79/11，最高值在左，最低值在右
         bb = f"{(entry.get('bodyBatteryHighestValue') or '--')}/{(entry.get('bodyBatteryLowestValue') or '--')}"
 
-        # 額外欄位 (從彙整中獲取)
-        sleep_score = str(entry.get("sleep_score", "--"))
-        hrv = str(entry.get("hrv_avg", "--"))
+        # 7. 睡眠分數 => 分數(品質)
+        sleep_score = str(entry.get("sleep_formatted", "--"))
+        
+        # 8. hrv(7d/夜間/最高5分鐘平均/狀態)
+        hrv = str(entry.get("hrv_formatted", "--"))
+        
+        # 9. 完備度
         readiness = str(entry.get("readiness_score", "--"))
+        
+        # 10. 血壓
         bp = entry.get("blood_pressure", "--")
 
         row = [date_str, steps, dist, cals, hr, stress, bb, sleep_score, hrv, readiness, bp]
@@ -638,8 +658,10 @@ def execute_combined_summary(args: argparse.Namespace):
             d = dto.get("calendarDate")
             if d in target_dates:
                 scores = dto.get("sleepScores") or {}
-                score = scores.get("overall", {}).get("value", "--")
-                data_map[d]["sleep_score"] = score
+                overall = scores.get("overall", {})
+                score = overall.get("value", "--")
+                qualifier = overall.get("qualifierKey", "--")
+                data_map[d]["sleep_formatted"] = f"{score}({qualifier})"
                 found.append(d)
         return found
 
@@ -656,7 +678,11 @@ def execute_combined_summary(args: argparse.Namespace):
             if not h or not isinstance(h, dict): continue
             d = h.get("calendarDate")
             if d in target_dates:
-                data_map[d]["hrv_avg"] = h.get("lastNightAvg", "--")
+                w_avg = h.get("weeklyAvg", "--")
+                n_avg = h.get("lastNightAvg", "--")
+                high_5m = h.get("lastNight5MinHigh", "--")
+                status = h.get("status", "--")
+                data_map[d]["hrv_formatted"] = f"{w_avg}/{n_avg}/{high_5m}/{status}"
                 found.append(d)
         return found
 
@@ -666,23 +692,31 @@ def execute_combined_summary(args: argparse.Namespace):
         summaries = (content.get("data") or {}).get("measurementSummaries", [])
         for s in summaries:
             if not s: continue
-            d = s.get("calendarDate")
+            d = s.get("calendarDate") or s.get("startDate")
             if d in target_dates:
-                data_map[d]["blood_pressure"] = f"{s.get('systolic')}/{s.get('diastolic')}"
+                # 優先使用 highSystolic/highDiastolic
+                systolic = s.get("highSystolic") or s.get("systolic") or "--"
+                diastolic = s.get("highDiastolic") or s.get("diastolic") or "--"
+                data_map[d]["blood_pressure"] = f"{systolic}/{diastolic}"
                 found.append(d)
         return found
 
     # 5. 訓練完備度 (readiness)
     def index_readiness(content):
         found = []
-        data_list = content.get("data", [])
-        if not isinstance(data_list, list): data_list = [data_list]
-        for d_item in data_list:
-            if not d_item: continue
-            d = d_item.get("calendarDate")
-            if d in target_dates:
-                data_map[d]["readiness_score"] = d_item.get("score", "--")
-                found.append(d)
+        data_obj = content.get("data", [])
+        if isinstance(data_obj, dict):
+            for d, val in data_obj.items():
+                if d in target_dates:
+                    data_map[d]["readiness_score"] = val.get("score", "--")
+                    found.append(d)
+        elif isinstance(data_obj, list):
+            for d_item in data_obj:
+                if not d_item: continue
+                d = d_item.get("calendarDate")
+                if d in target_dates:
+                    data_map[d]["readiness_score"] = d_item.get("score", "--")
+                    found.append(d)
         return found
 
     # 首次掃描
@@ -757,7 +791,7 @@ def execute_combined_summary(args: argparse.Namespace):
     local_items = []
     for d in target_dates:
         item = data_map[d]
-        relevant_keys = ["totalSteps", "restingHeartRate", "sleep_score", "hrv_avg", "blood_pressure"]
+        relevant_keys = ["totalSteps", "restingHeartRate", "sleep_formatted", "hrv_formatted", "blood_pressure"]
         if any(k in item for k in relevant_keys):
             local_items.append(item)
 

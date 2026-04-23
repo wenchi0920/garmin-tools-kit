@@ -116,6 +116,65 @@ python3 garmin_tools.py summary  預設 -d 7 , 要提供所有 的健康數據, 
 **通用參數**: `-d` 表示 今天往前顯示 幾天
 **通用參數**: `-o` save to file
 
+
+python3 garmin_tools.py summary
+
+
+**提供以下數據**：
+----------------------------------------------------------------------------------------------------------------------------------------------------
+日期           | 步數/目標        | 距離         | 卡路里(活動/總計)         | 心率(安靜/最大)        | 壓力(平均/最大)     | 能量(高/低)    | 睡眠分數     | hrv(7d/夜間/最高5分鐘平均/狀態)      | 完備度      | 血壓        
+----------------------------------------------------------------------------------------------------------------------------------------------------
+2026-04-17   | 5848/3000    | 4.64km     | 132/2043           | 52/105           | 34/93     | 79/11      | 84       | 69       | 48       | --       
+
+
+**步數/目標**：
+- 步數 = ./data/health/health_日期.json 中  data->totalSteps 
+- 目標 = ./data/health/health_日期.json 中  data->dailyStepGoal
+
+**距離**：
+- 距離 = ./data/health/health_日期.json 中  data->totalDistanceMeters
+
+**卡路里(活動/總計)**： 
+- 卡路里(活動) = ./data/health/health_日期.json 中  data->activeKilocalories  
+- 卡路里(總計) = ./data/health/health_日期.json 中  data->totalKilocalories
+
+
+**心率(安靜/最大)**：
+- 卡路里(活動) = ./data/health/health_日期.json 中  data->activeKilocalories
+- 卡路里(總計) = ./data/health/health_日期.json 中  data->totalKilocalories 
+
+**壓力(平均/最大)**：
+- 壓力(平均) = ./data/health/health_日期.json 中  data->averageStressLevel 
+- 壓力(最大) = ./data/health/health_日期.json 中  data->maxStressLevel  
+
+**能量(高/低)**：
+- 能量(高) = ./data/health/health_日期.json 中  data->bodyBatteryLowestValue 
+- 能量(低) = ./data/health/health_日期.json 中  data->bodyBatteryHighestValue   
+
+**睡眠分數**：**顯示 => 分數(品質)** 資料來源 , 
+- 分數 = ./data/sleep/sleep_日期.json 中  data->dailySleepDTO->sleepScores->overall->value
+- 品質 = ./data/sleep/sleep_日期.json 中  data->dailySleepDTO->sleepScores->overall->qualifierKey 
+
+**hrv(7d/夜間/最高5分鐘平均/狀態)**：
+- 7d = ./data/hrv/hrv_日期.json 中  data->hrvSummary->weeklyAvg
+- 夜間 = ./data/hrv/hrv_日期.json 中  data->hrvSummary->lastNightAvg
+- 最高5分鐘平均 = ./data/hrv/hrv_日期.json 中  data->hrvSummary->lastNight5MinHigh
+- 狀態 = ./data/hrv/hrv_日期.json 中  data->hrvSummary->status
+
+**完備度**： 
+- 完備度 = data/training-readiness/training-readiness_日期.json 中 data[當天日期 calendarDate]->score
+
+            
+**血壓**： 
+- 血壓 = ./data/blood-pressure/blood-pressure_日期.json 中  data->measurementSummaries->highSystolic / data->measurementSummaries->highDiastolic
+
+
+
+
+
+
+
+
 ---
 
 ## 4. 資料儲存與檔名規範 (DSS)
