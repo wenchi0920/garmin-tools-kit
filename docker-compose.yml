@@ -2,6 +2,7 @@ services:
   garmin-tools:
     build: .
     container_name: garmin-tools-kit
+    user: "1000:1000"
     volumes:
       - ./:/app/
     environment:
