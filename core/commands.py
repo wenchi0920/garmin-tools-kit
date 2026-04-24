@@ -123,9 +123,9 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         return
 
     # 表頭
-    headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力(平均/最大)", "能量(高/低)", "睡眠分數", "hrv(7d/夜間/最高5分鐘平均/狀態)", "完備度", "血壓"]
+    headers = ["日期", "步數/目標", "距離", "卡路里(活動/總計)", "心率(安靜/最大)", "壓力(平均/最大)", "能量(高/低)", "睡眠分數", "hrv(7d/夜間/狀態)", "完備度", "血壓"]
     # 根據範例調整寬度
-    col_widths = [12, 16, 12, 24, 20, 18, 14, 12, 38, 10, 12]
+    col_widths = [12, 16, 12, 24, 20, 18, 14, 12, 24, 10, 12]
 
     table_lines = []
     table_lines.append("\n**提供以下數據**：")
@@ -173,7 +173,7 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
         # 7. 睡眠分數 => 分數(品質)
         sleep_score = str(entry.get("sleep_formatted", "--"))
 
-        # 8. hrv(7d/夜間/最高5分鐘平均/狀態)
+        # 8. hrv(7d/夜間/狀態)
         hrv = str(entry.get("hrv_formatted", "--"))
 
         # 9. 完備度
@@ -188,9 +188,6 @@ def display_health_table(items: List[Dict[str, Any]], output_file: str = None) -
 
     table_lines.append(separator)
 
-    # 輸出至控制台
-    table_content = "\n".join(table_lines)
-    print(table_content)
     # 輸出至控制台
     table_content = "\n".join(table_lines)
     print(table_content)
@@ -703,17 +700,19 @@ def execute_combined_summary(args: argparse.Namespace):
             if d in target_dates:
                 w_avg = h.get("weeklyAvg")
                 n_avg = h.get("lastNightAvg")
-                high_5m = h.get("lastNight5MinHigh")
                 status = h.get("status")
                 
-                if all(v is None for v in [w_avg, n_avg, high_5m, status]):
+                if all(v is None for v in [w_avg, n_avg, status]):
                     data_map[d]["hrv_formatted"] = "--"
                 else:
                     w = w_avg if w_avg is not None else "--"
                     n = n_avg if n_avg is not None else "--"
-                    h5 = high_5m if high_5m is not None else "--"
                     s = status if status is not None else "--"
-                    data_map[d]["hrv_formatted"] = f"{w}/{n}/{h5}/{s}"
+                    # 若只有週平均則只顯示週平均 (對應範例 69)
+                    if n == "--" and s == "--":
+                        data_map[d]["hrv_formatted"] = str(w)
+                    else:
+                        data_map[d]["hrv_formatted"] = f"{w}/{n}/{s}"
                 found.append(d)
         return found
 

@@ -122,7 +122,7 @@ python3 garmin_tools.py summary
 
 **提供以下數據**：
 ----------------------------------------------------------------------------------------------------------------------------------------------------
-日期           | 步數/目標        | 距離         | 卡路里(活動/總計)         | 心率(安靜/最大)        | 壓力(平均/最大)     | 能量(高/低)    | 睡眠分數     | hrv(7d/夜間/最高5分鐘平均/狀態)      | 完備度      | 血壓        
+日期           | 步數/目標        | 距離         | 卡路里(活動/總計)         | 心率(安靜/最大)        | 壓力(平均/最大)     | 能量(高/低)    | 睡眠分數     | hrv(7d/夜間/狀態)      | 完備度      | 血壓        
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 2026-04-17   | 5848/3000    | 4.64km     | 132/2043           | 52/105           | 34/93     | 79/11      | 84       | 69       | 48       | --       
 
@@ -155,10 +155,10 @@ python3 garmin_tools.py summary
 - 分數 = ./data/sleep/sleep_日期.json 中  data->dailySleepDTO->sleepScores->overall->value
 - 品質 = ./data/sleep/sleep_日期.json 中  data->dailySleepDTO->sleepScores->overall->qualifierKey 
 
-**hrv(7d/夜間/最高5分鐘平均/狀態)**：
+**hrv(7d/夜間/狀態)**：
 - 7d = ./data/hrv/hrv_日期.json 中  data->hrvSummary->weeklyAvg
 - 夜間 = ./data/hrv/hrv_日期.json 中  data->hrvSummary->lastNightAvg
-- 最高5分鐘平均 = ./data/hrv/hrv_日期.json 中  data->hrvSummary->lastNight5MinHigh
+
 - 狀態 = ./data/hrv/hrv_日期.json 中  data->hrvSummary->status
 
 **完備度**： 
