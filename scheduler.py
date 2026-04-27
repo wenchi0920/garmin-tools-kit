@@ -121,7 +121,7 @@ def run_backup_job(force_all=False):
                 execute_cmd(current_args)
 
         logger.info("📊 [SUMMARY] 產生全方位健康摘要 (7天)...")
-        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "summary", "-d", "7", "-o", "data/health/health.txt"])
+        execute_cmd([python_bin, GARMIN_TOOLS_PATH, "-vvv", "summary", "-d", "7", "-o", "data/health.txt"])
 
 
     # B. 低頻指標 (其餘生理數據與週期性指標) -> 僅 23 時執行
