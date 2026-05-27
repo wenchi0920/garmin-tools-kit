@@ -103,10 +103,20 @@ def manage_workout_workflow(args: argparse.Namespace):
             schedule_plan = yaml_content.get("schedulePlan")
             if schedule_plan and schedule_plan.get("start_from"):
                 start_date = datetime.strptime(str(schedule_plan.get("start_from")), "%Y-%m-%d")
-                for i, name in enumerate(schedule_plan.get("workouts", [])):
+                for i, day_workouts in enumerate(schedule_plan.get("workouts", [])):
                     curr_date = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
-                    if name.lower() != "rest" and name in uploaded_id_map:
-                        client.schedule_workout(uploaded_id_map[name], curr_date)
+                    
+                    # 支援單一字串或字串列表 (一天多個計畫)
+                    if isinstance(day_workouts, str):
+                        workout_names = [day_workouts]
+                    elif isinstance(day_workouts, list):
+                        workout_names = day_workouts
+                    else:
+                        continue
+
+                    for name in workout_names:
+                        if name.lower() != "rest" and name in uploaded_id_map:
+                            client.schedule_workout(uploaded_id_map[name], curr_date)
         else:
             result = client.upload_workout(yaml_content)
             logger.success(f"上傳成功! ID: {result.get('workoutId')}")
